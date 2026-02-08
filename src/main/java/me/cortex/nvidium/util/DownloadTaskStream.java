@@ -1,21 +1,18 @@
 package me.cortex.nvidium.util;
 
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.cortex.nvidium.gl.RenderDevice;
 import me.cortex.nvidium.gl.buffers.Buffer;
 import me.cortex.nvidium.gl.buffers.PersistentClientMappedBuffer;
-import me.cortex.nvidium.util.SegmentedManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
-
-//Download stream from gpu to cpu
+// Download stream from gpu to cpu
 public class DownloadTaskStream {
-    public interface IDownloadFinishedCallback {void accept(long addr);}
+
+    public interface IDownloadFinishedCallback {
+
+        void accept(long addr);
+    }
 
     private record Download(long addr, IDownloadFinishedCallback callback) {}
 
@@ -25,6 +22,7 @@ public class DownloadTaskStream {
 
     private int cidx;
     private final ObjectList<Download>[] allocations;
+
     public DownloadTaskStream(RenderDevice device, int frames, long size) {
         this.device = device;
         allocator.setLimit(size);
@@ -43,7 +41,7 @@ public class DownloadTaskStream {
     }
 
     void tick() {
-        cidx = (cidx+1)%allocations.length;
+        cidx = (cidx + 1) % allocations.length;
         for (var download : allocations[cidx]) {
             download.callback.accept(download.addr + buffer.clientAddress());
             allocator.free(download.addr);

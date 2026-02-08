@@ -1,16 +1,17 @@
 package me.cortex.nvidium.util;
 
-import com.mojang.authlib.minecraft.client.MinecraftClient;
+import static org.lwjgl.opengl.GL15.glDeleteQueries;
+
 import net.minecraft.client.Minecraft;
-import org.lwjgl.BufferUtils;
+
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL33;
 
-import java.nio.IntBuffer;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
-import static org.lwjgl.opengl.GL15.glDeleteQueries;
-
+@Lwjgl3Aware
 public class FrameTimeProfiler {
+
     int startQuery = GL15.glGenQueries();
     int endQuery = GL15.glGenQueries();
 
@@ -46,8 +47,7 @@ public class FrameTimeProfiler {
     }
 
     public void startQuery() {
-        if (!Minecraft.getInstance().getDebugOverlay().showDebugScreen())
-            return;
+        Minecraft.getMinecraft().gameSettings.showDebugInfo = true;
         glDeleteQueries(startQuery);
         glDeleteQueries(endQuery);
         endQuery = GL15.glGenQueries();
@@ -56,8 +56,7 @@ public class FrameTimeProfiler {
     }
 
     public void endQuery() {
-        if (!Minecraft.getInstance().getDebugOverlay().showDebugScreen())
-            return;
+        Minecraft.getMinecraft().gameSettings.showDebugInfo = true;
         GL33.glQueryCounter(endQuery, GL33.GL_TIMESTAMP);
     }
 }

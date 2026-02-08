@@ -1,16 +1,15 @@
 #ifdef USE_SODIUM_VERTEX_FORMAT
 struct Vertex {
-    uint hi;
-    uint lo;
-    uint color;
-
-    uint16_t u;
-    uint16_t v;
-
-    uint8_t blockLight;
-    uint8_t skyLight;
+    uint16_t x;
+    uint16_t y;
+    uint16_t z;
     uint8_t material;
     uint8_t section;
+    uint color;
+    uint16_t u;
+    uint16_t v;
+    uint16_t skyLight;
+    uint16_t blockLight;
 };
 #else
 #define Vertex uvec4

@@ -1,12 +1,5 @@
 package me.cortex.nvidium.gl.buffers;
 
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import me.cortex.nvidium.Nvidium;
-import me.cortex.nvidium.gl.GlObject;
-import org.lwjgl.opengl.ARBSparseBuffer;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL21;
-
 import static org.lwjgl.opengl.ARBDirectStateAccess.glCreateBuffers;
 import static org.lwjgl.opengl.ARBDirectStateAccess.glNamedBufferStorage;
 import static org.lwjgl.opengl.ARBSparseBuffer.GL_SPARSE_STORAGE_BIT_ARB;
@@ -14,19 +7,30 @@ import static org.lwjgl.opengl.GL15C.GL_READ_WRITE;
 import static org.lwjgl.opengl.GL15C.glDeleteBuffers;
 import static org.lwjgl.opengl.NVShaderBufferLoad.*;
 
+import org.lwjgl.opengl.ARBSparseBuffer;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL21;
+
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import me.cortex.nvidium.Nvidium;
+import me.cortex.nvidium.gl.GlObject;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+
+@Lwjgl3Aware
 public class PersistentSparseAddressableBuffer extends GlObject implements IDeviceMappedBuffer {
+
     public static long alignUp(long number, long alignment) {
         long delta = number % alignment;
-        return delta == 0?number: number + (alignment - delta);
+        return delta == 0 ? number : number + (alignment - delta);
     }
 
     public final long addr;
     public final long size;
 
-    //The reason the page size is now 1mb is cause the nv driver doesnt defrag the sparse allocations easily
+    // The reason the page size is now 1mb is cause the nv driver doesnt defrag the sparse allocations easily
     // meaning smaller pages result in more fragmented memory and not happy for the driver
     // 1mb seems to work well
-    public static final long PAGE_SIZE = 1<<20;//16
+    public static final long PAGE_SIZE = 1 << 20;// 16
 
     public PersistentSparseAddressableBuffer(long size) {
         super(glCreateBuffers());
@@ -54,18 +58,18 @@ public class PersistentSparseAddressableBuffer extends GlObject implements IDevi
     private void allocatePages(int page, int pageCount) {
         doCommit(id, PAGE_SIZE * page, PAGE_SIZE * pageCount, true);
         for (int i = 0; i < pageCount; i++) {
-            allocationCount.addTo(i+page,1);
+            allocationCount.addTo(i + page, 1);
         }
     }
 
     private void deallocatePages(int page, int pageCount) {
         for (int i = 0; i < pageCount; i++) {
-            int newCount = allocationCount.get(i+page) - 1;
+            int newCount = allocationCount.get(i + page) - 1;
             if (newCount != 0) {
-                allocationCount.put(i+page, newCount);
+                allocationCount.put(i + page, newCount);
             } else {
-                allocationCount.remove(i+page);
-                doCommit(id, PAGE_SIZE * (page+i), PAGE_SIZE,false);
+                allocationCount.remove(i + page);
+                doCommit(id, PAGE_SIZE * (page + i), PAGE_SIZE, false);
             }
         }
     }
@@ -75,15 +79,15 @@ public class PersistentSparseAddressableBuffer extends GlObject implements IDevi
     }
 
     public void ensureAllocated(long addr, long size) {
-        int pstart = (int) (addr/PAGE_SIZE);
-        int pend   = (int) ((addr+size+PAGE_SIZE-1)/PAGE_SIZE);
-        allocatePages(pstart, pend-pstart);
+        int pstart = (int) (addr / PAGE_SIZE);
+        int pend = (int) ((addr + size + PAGE_SIZE - 1) / PAGE_SIZE);
+        allocatePages(pstart, pend - pstart);
     }
 
     public void deallocate(long addr, long size) {
-        int pstart = (int) (addr/PAGE_SIZE);
-        int pend   = (int) ((addr+size+PAGE_SIZE-1)/PAGE_SIZE);
-        deallocatePages(pstart, pend-pstart);
+        int pstart = (int) (addr / PAGE_SIZE);
+        int pend = (int) ((addr + size + PAGE_SIZE - 1) / PAGE_SIZE);
+        deallocatePages(pstart, pend - pstart);
     }
 
     @Override

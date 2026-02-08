@@ -1,14 +1,18 @@
 package me.cortex.nvidium.sodiumCompat;
 
+import java.util.function.Consumer;
+
+import net.minecraft.util.ResourceLocation;
+
+import org.embeddedt.embeddium.impl.gl.shader.ShaderConstants;
+import org.embeddedt.embeddium.impl.gl.shader.ShaderParser;
+
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.config.StatisticsLoggingLevel;
 import me.cortex.nvidium.config.TranslucencySortingLevel;
-import net.caffeinemc.mods.sodium.client.gl.shader.ShaderConstants;
-import net.caffeinemc.mods.sodium.client.gl.shader.ShaderParser;
-import net.minecraft.resources.ResourceLocation;
-import java.util.function.Consumer;
 
 public class ShaderLoader {
+
     public static String parse(ResourceLocation path) {
         return parse(path, shaderConstants -> {});
     }
@@ -20,9 +24,8 @@ public class ShaderLoader {
         }
 
         for (int i = 1; i <= Nvidium.config.statistics_level.ordinal(); i++) {
-            builder.add("STATISTICS_"+StatisticsLoggingLevel.values()[i].name());
+            builder.add("STATISTICS_" + StatisticsLoggingLevel.values()[i].name());
         }
-
 
         if (Nvidium.config.translucency_sorting_level.ordinal() >= TranslucencySortingLevel.SECTIONS.ordinal()) {
             builder.add("TRANSLUCENCY_SORTING_SECTIONS");
@@ -51,6 +54,9 @@ public class ShaderLoader {
         builder.add("TEXTURE_MAX_SCALE", String.valueOf(NvidiumCompactChunkVertex.TEXTURE_MAX_VALUE));
         constantBuilder.accept(builder);
 
-        return ShaderParser.parseShader("#import <"+path.getNamespace()+":"+path.getPath()+">", builder.build());
+        return ShaderParser.parseShader(
+            "#import <" + path.getResourceDomain() + ":" + path.getResourcePath() + ">",
+            org.embeddedt.embeddium.impl.render.shader.ShaderLoader::getShaderSource,
+            builder.build());
     }
 }

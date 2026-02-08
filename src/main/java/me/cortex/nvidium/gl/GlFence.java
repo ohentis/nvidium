@@ -2,7 +2,11 @@ package me.cortex.nvidium.gl;
 
 import static org.lwjgl.opengl.GL32.*;
 
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+
+@Lwjgl3Aware
 public class GlFence extends TrackedObject {
+
     private final long fence;
     private boolean signaled;
 

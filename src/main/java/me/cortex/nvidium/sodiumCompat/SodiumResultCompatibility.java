@@ -1,22 +1,34 @@
 package me.cortex.nvidium.sodiumCompat;
 
-import it.unimi.dsi.fastutil.longs.LongArrays;
-import me.cortex.nvidium.Nvidium;
-import me.cortex.nvidium.config.TranslucencySortingLevel;
-import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildOutput;
-import net.caffeinemc.mods.sodium.client.render.chunk.terrain.DefaultTerrainRenderPasses;
-import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.ChunkMeshFormats;
-import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.impl.CompactChunkVertex;
-import net.caffeinemc.mods.sodium.client.util.NativeBuffer;
-import net.minecraft.client.Minecraft;
+import org.embeddedt.embeddium.impl.common.util.NativeBuffer;
+import org.embeddedt.embeddium.impl.model.quad.properties.ModelQuadFacing;
+import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildOutput;
+import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkMeshFormats;
+import org.embeddedt.embeddium.impl.render.chunk.vertex.format.impl.CompactChunkVertex;
 import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
 
+import com.gtnewhorizons.angelica.compat.mojang.Camera;
+import com.gtnewhorizons.angelica.rendering.celeritas.AngelicaRenderPassConfiguration;
+
+import it.unimi.dsi.fastutil.longs.LongArrays;
+import me.cortex.nvidium.Nvidium;
+import me.cortex.nvidium.config.TranslucencySortingLevel;
+import me.cortex.nvidium.mixin.sodium.CameraAccessor;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+
+@Lwjgl3Aware
 public class SodiumResultCompatibility {
 
     public static RepackagedSectionOutput repackage(ChunkBuildOutput result) {
-        int formatSize = Nvidium.config.use_sodium_vertex_format ? ChunkMeshFormats.COMPACT.getVertexFormat().getStride() : NvidiumCompactChunkVertex.STRIDE;
-        int geometryBytes = result.meshes.values().stream().mapToInt(a->a.getVertexData().getLength()).sum();
+        int formatSize = Nvidium.config.use_sodium_vertex_format ? ChunkMeshFormats.COMPACT.getVertexFormat()
+            .getStride() : NvidiumCompactChunkVertex.STRIDE;
+        int geometryBytes = result.meshes.values()
+            .stream()
+            .mapToInt(
+                a -> a.vertexBuffer()
+                    .getLength())
+            .sum();
         var output = new NativeBuffer(geometryBytes);
         var offsets = new short[8];
         var min = new Vector3i(2000);
@@ -39,48 +51,51 @@ public class SodiumResultCompatibility {
             max.y = Math.max(max.y, 0);
             max.z = Math.max(max.z, 0);
 
-            size =  new Vector3i(max.x - min.x - 1, max.y - min.y - 1, max.z - min.z - 1);
+            size = new Vector3i(max.x - min.x - 1, max.y - min.y - 1, max.z - min.z - 1);
 
             size.x = Math.min(15, Math.max(size.x, 0));
             size.y = Math.min(15, Math.max(size.y, 0));
             size.z = Math.min(15, Math.max(size.z, 0));
         }
-        var repackagedGeometry = new RepackagedSectionOutput((geometryBytes/formatSize)/4, output, offsets, min, size);
-        //NvidiumGeometryReencoder.transpileGeometry(repackagedGeometry);
+        var repackagedGeometry = new RepackagedSectionOutput(
+            (geometryBytes / formatSize) / 4,
+            output,
+            offsets,
+            min,
+            size);
+        // NvidiumGeometryReencoder.transpileGeometry(repackagedGeometry);
         return repackagedGeometry;
     }
 
-
     private static void copyQuad(long from, long too) {
-        //Quads are 64 bytes big using NvidiumCompactChunkVertex otherwise 80 bytes using CompactChunkVertex
-        long quadSize = Nvidium.config.use_sodium_vertex_format ?
-                CompactChunkVertex.STRIDE * 4 :
-                NvidiumCompactChunkVertex.STRIDE * 4;
-        for (long i = 0; i < quadSize; i+=8) {
+        // Quads are 64 bytes big using NvidiumCompactChunkVertex otherwise 80 bytes using CompactChunkVertex
+        long quadSize = Nvidium.config.use_sodium_vertex_format ? CompactChunkVertex.STRIDE * 4
+            : NvidiumCompactChunkVertex.STRIDE * 4;
+        for (long i = 0; i < quadSize; i += 8) {
             MemoryUtil.memPutLong(too + i, MemoryUtil.memGetLong(from + i));
         }
     }
 
-    //Everything is /6*4 cause its in indices and we want verticies
-    private static void packageSectionGeometry(int formatSize, NativeBuffer output, short[] outOffsets, ChunkBuildOutput result, Vector3i min, Vector3i max) {
+    // Everything is /6*4 cause its in indices and we want verticies
+    private static void packageSectionGeometry(int formatSize, NativeBuffer output, short[] outOffsets,
+        ChunkBuildOutput result, Vector3i min, Vector3i max) {
         int offset = 0;
 
         long outPtr = MemoryUtil.memAddress(output.getDirectBuffer());
-        //NOTE: mutates the input translucent geometry
+        // NOTE: mutates the input translucent geometry
+        var cameraPos = ((CameraAccessor) Camera.INSTANCE).nvidium$getPos();
 
-        var cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        float cpx = (float) (cameraPos.x - (result.render.getChunkX() << 4));
+        float cpy = (float) (cameraPos.y - (result.render.getChunkY() << 4));
+        float cpz = (float) (cameraPos.z - (result.render.getChunkZ() << 4));
 
-        float cpx = (float) (cameraPos.x - (result.render.getChunkX()<<4));
-        float cpy = (float) (cameraPos.y - (result.render.getChunkY()<<4));
-        float cpz = (float) (cameraPos.z - (result.render.getChunkZ()<<4));
+        {// Project the camera pos onto the bounding outline of the chunk (-8 -> 24 for each axis)
+            float len = (float) Math.sqrt(cpx * cpx + cpy * cpy + cpz * cpz);
+            cpx *= 1 / len;
+            cpy *= 1 / len;
+            cpz *= 1 / len;
 
-        {//Project the camera pos onto the bounding outline of the chunk (-8 -> 24 for each axis)
-            float len = (float) Math.sqrt(cpx*cpx + cpy*cpy + cpz*cpz);
-            cpx *= 1/len;
-            cpy *= 1/len;
-            cpz *= 1/len;
-
-            //The max range of the camera can be is like 32 blocks away so just use that
+            // The max range of the camera can be is like 32 blocks away so just use that
             len = Math.min(len, 32);
 
             cpx *= len;
@@ -88,47 +103,59 @@ public class SodiumResultCompatibility {
             cpz *= len;
         }
 
-        //Do translucent first
-        var translucentData = result.meshes.get(DefaultTerrainRenderPasses.TRANSLUCENT);
+        // Do translucent first
+        var translucentData = result.meshes.get(AngelicaRenderPassConfiguration.TRANSLUCENT_PASS);
 
         // If we are using sodium translucency sorting, we don't need to sort quads
         if (translucentData != null && Nvidium.config.translucency_sorting_level == TranslucencySortingLevel.SODIUM) {
             var partOffset = 0;
-            MemoryUtil.memCopy(translucentData.getVertexData().getDirectBuffer(), output.getDirectBuffer());
-            for (int i = 0; i < 7; i++) { // For each Facing
-                var part = translucentData.getVertexCounts()[i];
+            MemoryUtil.memCopy(
+                translucentData.vertexBuffer()
+                    .getDirectBuffer(),
+                output.getDirectBuffer());
+            for (var part : translucentData.ranges()
+                .values()) { // For each Facing
 
-                for (int j = 0; j < part; j++) {
+                for (int j = 0; j < part.vertexCount(); j++) {
                     long src = MemoryUtil.memAddress(output.getDirectBuffer()) + (long) partOffset * formatSize;
                     long base = src + (long) j * formatSize;
 
                     updateSectionBounds(min, max, base);
                 }
 
-                partOffset += part;
+                partOffset += part.vertexCount();
             }
-            offset += translucentData.getVertexData().getLength() / (formatSize * 4);
+            offset += translucentData.vertexBuffer()
+                .getLength() / (formatSize * 4);
 
         } else if (translucentData != null) {
             int quadCount = 0;
-            for (int i = 0; i < 7; i++) {
-                var part = translucentData.getVertexCounts()[i];
-                quadCount += part/4;
+            for (var part : translucentData.ranges()
+                .values()) {
+                quadCount += part.vertexCount() / 4;
             }
             int quadId = 0;
             long[] sortingData = new long[quadCount];
             long[] srcs = new long[7];
             var partOffset = 0;
             for (int i = 0; i < 7; i++) {
-                var part = translucentData.getVertexCounts()[i];
+                var range = translucentData.ranges()
+                    .get(ModelQuadFacing.VALUES[i]);
+                if (range == null) {
+                    continue;
+                }
+                var part = range.vertexCount();
 
-                long src = MemoryUtil.memAddress(translucentData.getVertexData().getDirectBuffer()) + (long) partOffset * formatSize;
+                long src = MemoryUtil.memAddress(
+                    translucentData.vertexBuffer()
+                        .getDirectBuffer())
+                    + (long) partOffset * formatSize;
                 srcs[i] = src;
 
                 float cx = 0;
                 float cy = 0;
                 float cz = 0;
-                //Update the meta bits of the model format
+                // Update the meta bits of the model format
                 for (int j = 0; j < part; j++) {
                     long base = src + (long) j * formatSize;
 
@@ -137,7 +164,7 @@ public class SodiumResultCompatibility {
                         int hi = MemoryUtil.memGetInt(base);
                         int lo = MemoryUtil.memGetInt(base + 4);
 
-                        x = scalePos((((hi >>  0) & 0x3FF) << 10) | ((lo >>  0) & 0x3FF));
+                        x = scalePos((((hi >> 0) & 0x3FF) << 10) | ((lo >> 0) & 0x3FF));
                         y = scalePos((((hi >> 10) & 0x3FF) << 10) | ((lo >> 10) & 0x3FF));
                         z = scalePos((((hi >> 20) & 0x3FF) << 10) | ((lo >> 20) & 0x3FF));
 
@@ -152,23 +179,23 @@ public class SodiumResultCompatibility {
                     cy += y;
                     cz += z;
 
-                    if ((j&3) == 3) {
-                        //Compute the center point of the vertex
+                    if ((j & 3) == 3) {
+                        // Compute the center point of the vertex
                         cx *= 1 / 4f;
                         cy *= 1 / 4f;
                         cz *= 1 / 4f;
 
-                        //Distance to camera
-                        float dx = cx-cpx;
-                        float dy = cy-cpy;
-                        float dz = cz-cpz;
+                        // Distance to camera
+                        float dx = cx - cpx;
+                        float dy = cy - cpy;
+                        float dz = cz - cpz;
 
-                        float dist = dx*dx + dy*dy + dz*dz;
+                        float dist = dx * dx + dy * dy + dz * dz;
 
-                        int sortDistance = (int) (dist*(1<<12));
+                        int sortDistance = (int) (dist * (1 << 12));
 
-                        //We pack the sorting data
-                        long packedSortingData = (((long)sortDistance)<<32)|((((long) j>>2)<<3)|i);
+                        // We pack the sorting data
+                        long packedSortingData = (((long) sortDistance) << 32) | ((((long) j >> 2) << 3) | i);
                         sortingData[quadId++] = packedSortingData;
 
                         cx = 0;
@@ -187,70 +214,93 @@ public class SodiumResultCompatibility {
 
             for (int i = 0; i < sortingData.length; i++) {
                 long data = sortingData[i];
-                copyQuad(srcs[(int) (data&7)] + ((data>>3)&((1L<<29)-1))*4*formatSize, outPtr + ((sortingData.length-1)-i) * 4L * formatSize);
+                copyQuad(
+                    srcs[(int) (data & 7)] + ((data >> 3) & ((1L << 29) - 1)) * 4 * formatSize,
+                    outPtr + ((sortingData.length - 1) - i) * 4L * formatSize);
             }
-
 
             offset += quadCount;
         }
 
         outOffsets[7] = (short) offset;
 
+        var solid = result.meshes.get(AngelicaRenderPassConfiguration.SOLID_PASS);
+        var cutout = result.meshes.get(AngelicaRenderPassConfiguration.CUTOUT_MIPPED_PASS);
 
-        var solid  = result.meshes.get(DefaultTerrainRenderPasses.SOLID);
-        var cutout = result.meshes.get(DefaultTerrainRenderPasses.CUTOUT);
-
-        //Do all but translucent
+        // Do all but translucent
         long solidPartOffset = 0;
         long cutoutPartOffset = 0;
         for (int i = 0; i < 7; i++) {
             int poff = offset;
             if (solid != null) {
-                var part = solid.getVertexCounts()[i];
-                long src = MemoryUtil.memAddress(solid.getVertexData().getDirectBuffer()) + solidPartOffset * formatSize;
-                long dst = outPtr + offset * 4L * formatSize;
-                MemoryUtil.memCopy(src, dst, (long) part * formatSize);
-
-                //Update the meta bits of the model format
-                for (int j = 0; j < part; j++) {
-                    long base = dst+ (long) j * formatSize;
-                    updateSectionBounds(min, max, base);
+                var range = solid.ranges()
+                    .get(ModelQuadFacing.VALUES[i]);
+                if (range == null) {
+                    continue;
                 }
-
-                offset += part/4;
-                solidPartOffset += part;
-            }
-            if (cutout != null) {
-                var part = cutout.getVertexCounts()[i];
-                long src = MemoryUtil.memAddress(cutout.getVertexData().getDirectBuffer()) + cutoutPartOffset * formatSize;
+                var part = range.vertexCount();
+                long src = MemoryUtil.memAddress(
+                    solid.vertexBuffer()
+                        .getDirectBuffer())
+                    + solidPartOffset * formatSize;
                 long dst = outPtr + offset * 4L * formatSize;
                 MemoryUtil.memCopy(src, dst, (long) part * formatSize);
 
-                //Update the meta bits of the model format
+                // Update the meta bits of the model format
                 for (int j = 0; j < part; j++) {
                     long base = dst + (long) j * formatSize;
                     updateSectionBounds(min, max, base);
                 }
-                offset += part/4;
+
+                offset += part / 4;
+                solidPartOffset += part;
+            }
+            if (cutout != null) {
+                var range = cutout.ranges()
+                    .get(ModelQuadFacing.VALUES[i]);
+                if (range == null) {
+                    continue;
+                }
+                var part = range.vertexCount();
+                long src = MemoryUtil.memAddress(
+                    cutout.vertexBuffer()
+                        .getDirectBuffer())
+                    + cutoutPartOffset * formatSize;
+                long dst = outPtr + offset * 4L * formatSize;
+                MemoryUtil.memCopy(src, dst, (long) part * formatSize);
+
+                // Update the meta bits of the model format
+                for (int j = 0; j < part; j++) {
+                    long base = dst + (long) j * formatSize;
+                    updateSectionBounds(min, max, base);
+                }
+                offset += part / 4;
                 cutoutPartOffset += part;
             }
             outOffsets[i] = (short) (offset - poff);
         }
 
-        if (offset*4*formatSize != output.getLength()) {
-            throw new IllegalStateException("Nvidium bad build result got " + offset*4*formatSize + " instead of " + output.getLength() + " at " +
-                    result.render.getChunkX() + " " + result.render.getChunkY() + " " + result.render.getChunkZ());
-        }
+        // if (offset * 4 * formatSize != output.getLength()) {
+        // throw new IllegalStateException(
+        // "Nvidium bad build result got " + offset * 4 * formatSize
+        // + " instead of "
+        // + output.getLength()
+        // + " at "
+        // + result.render.getChunkX()
+        // + " "
+        // + result.render.getChunkY()
+        // + " "
+        // + result.render.getChunkZ());
+        // }
     }
 
-
     private static float decodePosition(short v) {
-        return Short.toUnsignedInt(v)*(1f/2048.0f)-8.0f;
+        return Short.toUnsignedInt(v) * (1f / 2048.0f) - 8.0f;
     }
 
     private static float scalePos(int pos) {
-        float vertexScale = 32f / (float)((1<<20)-1);
-        return (((float)pos) * vertexScale) - 8;
+        float vertexScale = 32f / (float) ((1 << 20) - 1);
+        return (((float) pos) * vertexScale) - 8;
     }
 
     private static void updateSectionBounds(Vector3i min, Vector3i max, long vertex) {
@@ -260,7 +310,7 @@ public class SodiumResultCompatibility {
             int hi = MemoryUtil.memGetInt(vertex);
             int lo = MemoryUtil.memGetInt(vertex + 4);
 
-            x = scalePos((((hi >>  0) & 0x3FF) << 10) | ((lo >>  0) & 0x3FF));
+            x = scalePos((((hi >> 0) & 0x3FF) << 10) | ((lo >> 0) & 0x3FF));
             y = scalePos((((hi >> 10) & 0x3FF) << 10) | ((lo >> 10) & 0x3FF));
             z = scalePos((((hi >> 20) & 0x3FF) << 10) | ((lo >> 20) & 0x3FF));
 

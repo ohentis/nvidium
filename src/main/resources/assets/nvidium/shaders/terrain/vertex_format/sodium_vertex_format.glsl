@@ -1,4 +1,4 @@
-const uint POSITION_BITS        = 20u;
+const uint POSITION_BITS        = 16u;
 const uint POSITION_MAX_COORD   = 1u << POSITION_BITS;
 const uint POSITION_MAX_VALUE   = POSITION_MAX_COORD - 1u;
 
@@ -10,10 +10,7 @@ const float VERTEX_SCALE = 32.0 / float(POSITION_MAX_COORD);
 const float VERTEX_OFFSET = -8.0;
 
 uvec3 _deinterleave_u20x3(Vertex v) {
-    uvec3 hi = (uvec3(v.hi) >> uvec3(0u, 10u, 20u)) & 0x3FFu;
-    uvec3 lo = (uvec3(v.lo) >> uvec3(0u, 10u, 20u)) & 0x3FFu;
-
-    return (hi << 10u) | lo;
+    return uvec3(v.x,v.y,v.z);
 }
 
 vec3 decodeVertexPosition(Vertex v) {

@@ -1,17 +1,20 @@
 package me.cortex.nvidium.gl.buffers;
 
-
-import me.cortex.nvidium.gl.GlObject;
-
 import static org.lwjgl.opengl.ARBDirectStateAccess.glCreateBuffers;
 import static org.lwjgl.opengl.ARBDirectStateAccess.glNamedBufferStorage;
 import static org.lwjgl.opengl.GL15C.GL_READ_WRITE;
 import static org.lwjgl.opengl.GL15C.glDeleteBuffers;
 import static org.lwjgl.opengl.NVShaderBufferLoad.*;
 
+import me.cortex.nvidium.gl.GlObject;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+
+@Lwjgl3Aware
 public class DeviceOnlyMappedBuffer extends GlObject implements IDeviceMappedBuffer {
+
     public final long size;
     public final long addr;
+
     public DeviceOnlyMappedBuffer(long size) {
         super(glCreateBuffers());
         this.size = size;

@@ -1,18 +1,22 @@
 package me.cortex.nvidium.gl.images;
 
-import com.mojang.blaze3d.platform.GlConst;
-import com.mojang.blaze3d.platform.GlStateManager;
-
 import static org.lwjgl.opengl.ARBDirectStateAccess.*;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11C.glDeleteTextures;
 import static org.lwjgl.opengl.GL30C.*;
 
+import com.gtnewhorizons.angelica.glsm.GLStateManager;
+
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+
+@Lwjgl3Aware
 public class DepthOnlyFrameBuffer {
+
     public final int width;
     public final int height;
     private final int fid;
     private final int did;
+
     public DepthOnlyFrameBuffer(int width, int height) {
         this.width = width;
         this.height = height;
@@ -30,9 +34,9 @@ public class DepthOnlyFrameBuffer {
     }
 
     public void bind(boolean setViewport) {
-        GlStateManager._glBindFramebuffer(GlConst.GL_FRAMEBUFFER, fid);
+        GLStateManager.glBindFramebuffer(36160, fid);
         if (setViewport) {
-            GlStateManager._viewport(0, 0, width, height);
+            GLStateManager.glViewport(0, 0, width, height);
         }
     }
 

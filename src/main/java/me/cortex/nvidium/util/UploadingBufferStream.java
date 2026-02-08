@@ -1,30 +1,27 @@
 package me.cortex.nvidium.util;
 
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongList;
-import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
-import me.cortex.nvidium.gl.GlFence;
-import me.cortex.nvidium.gl.RenderDevice;
-import me.cortex.nvidium.gl.buffers.Buffer;
-import me.cortex.nvidium.gl.buffers.PersistentClientMappedBuffer;
-
-import java.lang.ref.WeakReference;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-
 import static me.cortex.nvidium.util.SegmentedManager.SIZE_LIMIT;
 import static org.lwjgl.opengl.ARBDirectStateAccess.glCopyNamedBufferSubData;
 import static org.lwjgl.opengl.ARBDirectStateAccess.glFlushMappedNamedBufferRange;
 import static org.lwjgl.opengl.ARBMapBufferRange.*;
 import static org.lwjgl.opengl.GL11.glFinish;
-import static org.lwjgl.opengl.GL11.glGetError;
 import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 import static org.lwjgl.opengl.GL42C.GL_BUFFER_UPDATE_BARRIER_BIT;
 import static org.lwjgl.opengl.GL44.GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import me.cortex.nvidium.gl.GlFence;
+import me.cortex.nvidium.gl.RenderDevice;
+import me.cortex.nvidium.gl.buffers.Buffer;
+import me.cortex.nvidium.gl.buffers.PersistentClientMappedBuffer;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+
+@Lwjgl3Aware
 public class UploadingBufferStream {
+
     private final SegmentedManager allocationArena = new SegmentedManager();
     private final PersistentClientMappedBuffer uploadBuffer;
 
@@ -41,6 +38,7 @@ public class UploadingBufferStream {
 
     private long caddr = -1;
     private long offset = 0;
+
     public long upload(Buffer buffer, long destOffset, long size) {
         if (size > Integer.MAX_VALUE || size == 0 || size < 0) {
             throw new IllegalArgumentException();
@@ -48,14 +46,14 @@ public class UploadingBufferStream {
         if (destOffset < 0) {
             throw new IllegalStateException();
         }
-        if (destOffset+size > buffer.getSize()) {
+        if (destOffset + size > buffer.getSize()) {
             throw new IllegalStateException();
         }
 
         long addr;
         if (this.caddr == -1 || !this.allocationArena.expand(this.caddr, (int) size)) {
             this.caddr = this.allocationArena.alloc((int) size);
-            //If the upload stream is full, flush it and empty it
+            // If the upload stream is full, flush it and empty it
             if (this.caddr == SIZE_LIMIT) {
                 this.commit();
                 int attempts = 10;
@@ -65,13 +63,14 @@ public class UploadingBufferStream {
                     this.caddr = this.allocationArena.alloc((int) size);
                 }
                 if (this.caddr == SIZE_LIMIT) {
-                    throw new IllegalStateException("Could not allocate memory segment big enough for upload even after force flush");
+                    throw new IllegalStateException(
+                        "Could not allocate memory segment big enough for upload even after force flush");
                 }
             }
             this.flushList.add(this.caddr);
             this.offset = size;
             addr = this.caddr;
-        } else {//Could expand the allocation so just update it
+        } else {// Could expand the allocation so just update it
             addr = this.caddr + this.offset;
             this.offset += size;
         }
@@ -85,9 +84,8 @@ public class UploadingBufferStream {
         return this.uploadBuffer.addr + addr;
     }
 
-
     public void commit() {
-        //First flush all the allocations and enqueue them to be freed
+        // First flush all the allocations and enqueue them to be freed
         {
             for (long alloc : flushList) {
                 glFlushMappedNamedBufferRange(this.uploadBuffer.getId(), alloc, this.allocationArena.getSize(alloc));
@@ -96,9 +94,14 @@ public class UploadingBufferStream {
             this.flushList.clear();
         }
         glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
-        //Execute all the copies
+        // Execute all the copies
         for (var entry : this.uploadList) {
-            glCopyNamedBufferSubData(this.uploadBuffer.getId(), entry.target.getId(), entry.uploadOffset, entry.targetOffset, entry.size);
+            glCopyNamedBufferSubData(
+                this.uploadBuffer.getId(),
+                entry.target.getId(),
+                entry.uploadOffset,
+                entry.targetOffset,
+                entry.size);
         }
         this.uploadList.clear();
 
@@ -116,12 +119,12 @@ public class UploadingBufferStream {
         }
 
         while (!this.frames.isEmpty()) {
-            //Since the ordering of frames is the ordering of the gl commands if we encounter an unsignaled fence
+            // Since the ordering of frames is the ordering of the gl commands if we encounter an unsignaled fence
             // all the other fences should also be unsignaled
             if (!this.frames.peek().fence.signaled()) {
                 break;
             }
-            //Release all the allocations from the frame
+            // Release all the allocations from the frame
             var frame = this.frames.pop();
             frame.allocations.forEach(allocationArena::free);
             frame.fence.free();
@@ -131,10 +134,11 @@ public class UploadingBufferStream {
     public void delete() {
         TickableManager.remove(this);
         this.uploadBuffer.delete();
-        this.frames.forEach(frame->frame.fence.free());
+        this.frames.forEach(frame -> frame.fence.free());
     }
 
     private record UploadFrame(GlFence fence, LongArrayList allocations) {}
+
     private record UploadData(Buffer target, long uploadOffset, long targetOffset, long size) {}
 
 }

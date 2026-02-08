@@ -1,19 +1,18 @@
 package me.cortex.nvidium.mixin.minecraft;
 
-import me.cortex.nvidium.Nvidium;
-import net.minecraft.client.renderer.FogRenderer;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.Constant;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import net.minecraft.client.renderer.EntityRenderer;
 
-@Mixin(FogRenderer.class)
+import org.spongepowered.asm.mixin.Mixin;
+
+@Mixin(EntityRenderer.class)
 public class MixinFogRenderer {
-    @ModifyConstant(method = "setupFog", constant = @Constant(floatValue = 192.0F))
-    private static float changeFog(float fog) {
-        if (Nvidium.IS_ENABLED) {
-            return 9999999f;
-        } else {
-            return fog;
-        }
-    }
+
+    // @ModifyConstant(method = "setupFog", constant = @Constant(floatValue = 192.0F))
+    // private float changeFog(float fog) {
+    // if (Nvidium.IS_ENABLED) {
+    // return 9999999f;
+    // } else {
+    // return fog;
+    // }
+    // }
 }

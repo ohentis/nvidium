@@ -1,32 +1,38 @@
 package me.cortex.nvidium;
 
+import static org.lwjgl.opengl.GL11.glGetInteger;
+import static org.lwjgl.opengl.NVXGPUMemoryInfo.GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+
+import org.embeddedt.embeddium.impl.render.chunk.ChunkRenderMatrices;
+import org.embeddedt.embeddium.impl.render.chunk.RenderSection;
+import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildOutput;
+import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkSortOutput;
+import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkTaskOutput;
+import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkMeshFormats;
+import org.embeddedt.embeddium.impl.render.viewport.Viewport;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4fc;
+
+import com.gtnewhorizons.angelica.AngelicaMod;
+import com.gtnewhorizons.angelica.compat.mojang.Camera;
+
 import me.cortex.nvidium.gl.RenderDevice;
 import me.cortex.nvidium.managers.AsyncOcclusionTracker;
 import me.cortex.nvidium.managers.SectionManager;
 import me.cortex.nvidium.sodiumCompat.NvidiumCompactChunkVertex;
 import me.cortex.nvidium.util.DownloadTaskStream;
 import me.cortex.nvidium.util.UploadingBufferStream;
-import net.caffeinemc.mods.sodium.client.SodiumClientMod;
-import net.caffeinemc.mods.sodium.client.render.chunk.ChunkRenderMatrices;
-import net.caffeinemc.mods.sodium.client.render.chunk.RenderSection;
-import net.caffeinemc.mods.sodium.client.render.chunk.compile.BuilderTaskOutput;
-import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildOutput;
-import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkSortOutput;
-import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.ChunkMeshFormats;
-import net.caffeinemc.mods.sodium.client.render.viewport.Viewport;
-import net.minecraft.client.Camera;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4fc;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.lwjgl.opengl.GL11.glGetInteger;
-import static org.lwjgl.opengl.NVXGPUMemoryInfo.GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX;
-
+@Lwjgl3Aware
 public class NvidiumWorldRenderer {
+
     private static final RenderDevice device = new RenderDevice();
 
     private final UploadingBufferStream uploadStream;
@@ -37,23 +43,30 @@ public class NvidiumWorldRenderer {
 
     private final AsyncOcclusionTracker asyncChunkTracker;
 
-    //Max memory that the gpu can use to store geometry in mb
+    // Max memory that the gpu can use to store geometry in mb
     private long max_geometry_memory;
     private long last_sample_time;
 
-    //Note: the reason that asyncChunkTracker is passed in as an already constructed object is cause of the amount of argmuents it takes to construct it
+    // Note: the reason that asyncChunkTracker is passed in as an already constructed object is cause of the amount of
+    // argmuents it takes to construct it
     public NvidiumWorldRenderer(AsyncOcclusionTracker asyncChunkTracker) {
-        int frames = SodiumClientMod.options().advanced.cpuRenderAheadLimit+1;
-        //32 mb upload buffer
+        int frames = AngelicaMod.options().performance.cpuRenderAheadLimit + 1;
+        // 32 mb upload buffer
         this.uploadStream = new UploadingBufferStream(device, 32000000);
-        //8 mb download buffer
+        // 8 mb download buffer
         this.downloadStream = new DownloadTaskStream(device, frames, 8000000);
 
         update_allowed_memory();
-        //this.sectionManager = new SectionManager(device, max_geometry_memory*1024*1024, uploadStream, 150, 24, CompactChunkVertex.STRIDE);
-        this.sectionManager = new SectionManager(device, max_geometry_memory*1024*1024, uploadStream, Nvidium.config.use_sodium_vertex_format ? ChunkMeshFormats.COMPACT.getVertexFormat().getStride() : NvidiumCompactChunkVertex.STRIDE, this);
+        // this.sectionManager = new SectionManager(device, max_geometry_memory*1024*1024, uploadStream, 150, 24,
+        // CompactChunkVertex.STRIDE);
+        this.sectionManager = new SectionManager(
+            device,
+            max_geometry_memory * 1024 * 1024,
+            uploadStream,
+            Nvidium.config.use_sodium_vertex_format ? ChunkMeshFormats.COMPACT.getVertexFormat()
+                .getStride() : NvidiumCompactChunkVertex.STRIDE,
+            this);
         this.renderPipeline = new RenderPipeline(device, uploadStream, downloadStream, sectionManager);
-
 
         this.asyncChunkTracker = asyncChunkTracker;
     }
@@ -84,7 +97,8 @@ public class NvidiumWorldRenderer {
             renderPipeline.removeARegion();
         }
 
-        if (Nvidium.SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER && (System.currentTimeMillis() - last_sample_time) > 60000) {
+        if (Nvidium.SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER
+            && (System.currentTimeMillis() - last_sample_time) > 60000) {
             last_sample_time = System.currentTimeMillis();
             update_allowed_memory();
         }
@@ -98,7 +112,7 @@ public class NvidiumWorldRenderer {
         this.sectionManager.deleteSection(section);
     }
 
-    public void uploadBuildResult(BuilderTaskOutput buildOutput) {
+    public void uploadBuildResult(ChunkTaskOutput buildOutput) {
         if (buildOutput instanceof ChunkBuildOutput chunkBuildOutput) {
             this.sectionManager.uploadChunkBuildResult(chunkBuildOutput);
         }
@@ -108,31 +122,47 @@ public class NvidiumWorldRenderer {
     }
 
     public void addDebugInfo(ArrayList<String> debugInfo) {
-        debugInfo.add("Using nvidium renderer: "+ Nvidium.MOD_VERSION);
+        debugInfo.add("Using nvidium renderer: " + Tags.VERSION);
         /*
-        debugInfo.add("Memory limit: " + max_geometry_memory + " mb");
-        debugInfo.add("Terrain Memory MB: " +);
-        debugInfo.add(String.format("Fragmentation: %.2f", sectionManager.terrainAreana.getFragmentation()*100));
-        debugInfo.add("Regions: " + sectionManager.getRegionManager().regionCount() + "/" + sectionManager.getRegionManager().maxRegions());
+         * debugInfo.add("Memory limit: " + max_geometry_memory + " mb");
+         * debugInfo.add("Terrain Memory MB: " +);
+         * debugInfo.add(String.format("Fragmentation: %.2f", sectionManager.terrainAreana.getFragmentation()*100));
+         * debugInfo.add("Regions: " + sectionManager.getRegionManager().regionCount() + "/" +
+         * sectionManager.getRegionManager().maxRegions());
          */
-        debugInfo.add("Mem" + (Nvidium.SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER?"":" (fallback)") + ": " +
-                (Nvidium.SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER?
-                        this.sectionManager.terrainAreana.getAllocatedMB() + "+" + this.sectionManager.translucencyIndexArena.getAllocatedMB() :
-                        this.sectionManager.terrainAreana.getUsedMB() + "+" + this.sectionManager.translucencyIndexArena.getUsedMB())
-                + "/"+ this.max_geometry_memory + String.format(", F: %.2f", sectionManager.terrainAreana.getFragmentation()*100));
-        debugInfo.add("Regions: " + sectionManager.getRegionManager().regionCount() + "/" + sectionManager.getRegionManager().maxRegions());
+        debugInfo.add(
+            "Mem" + (Nvidium.SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER ? "" : " (fallback)")
+                + ": "
+                + (Nvidium.SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER
+                    ? this.sectionManager.terrainAreana.getAllocatedMB() + "+"
+                        + this.sectionManager.translucencyIndexArena.getAllocatedMB()
+                    : this.sectionManager.terrainAreana.getUsedMB() + "+"
+                        + this.sectionManager.translucencyIndexArena.getUsedMB())
+                + "/"
+                + this.max_geometry_memory
+                + String.format(", F: %.2f", sectionManager.terrainAreana.getFragmentation() * 100));
+        debugInfo.add(
+            "Regions: " + sectionManager.getRegionManager()
+                .regionCount()
+                + "/"
+                + sectionManager.getRegionManager()
+                    .maxRegions());
         if (this.asyncChunkTracker != null) {
-            debugInfo.add("A-BFS: " + asyncChunkTracker.getIterationTime() + " Q: " + Arrays.toString(this.asyncChunkTracker.getBuildQueueSizes()));//Async BFS iteration time:, Build queue sizes:
+            debugInfo.add(
+                "A-BFS: " + asyncChunkTracker.getIterationTime()
+                    + " Q: "
+                    + Arrays.toString(this.asyncChunkTracker.getBuildQueueSizes()));// Async BFS iteration time:, Build
+                                                                                    // queue sizes:
         }
         this.renderPipeline.addDebugInfo(debugInfo);
     }
 
-
     private void update_allowed_memory() {
         if (Nvidium.config.automatic_memory) {
-            max_geometry_memory = (glGetInteger(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX) / 1024) + (sectionManager==null?0:sectionManager.terrainAreana.getMemoryUsed()/(1024*1024));
-            max_geometry_memory -= 1024;//Minus 1gb of vram
-            max_geometry_memory = Math.max(2048, max_geometry_memory);//Minimum 2 gb of vram
+            max_geometry_memory = (glGetInteger(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX) / 1024)
+                + (sectionManager == null ? 0 : sectionManager.terrainAreana.getMemoryUsed() / (1024 * 1024));
+            max_geometry_memory -= 1024;// Minus 1gb of vram
+            max_geometry_memory = Math.max(2048, max_geometry_memory);// Minimum 2 gb of vram
         } else {
             max_geometry_memory = Nvidium.config.max_geometry_memory;
         }
@@ -188,6 +218,7 @@ public class NvidiumWorldRenderer {
             return -1;
         }
     }
+
     public int getMaxGeometryMemory() {
         return (int) max_geometry_memory;
     }

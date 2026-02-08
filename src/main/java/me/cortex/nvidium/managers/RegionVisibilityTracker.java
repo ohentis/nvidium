@@ -1,27 +1,35 @@
 package me.cortex.nvidium.managers;
 
-import me.cortex.nvidium.gl.buffers.Buffer;
-import me.cortex.nvidium.gl.shader.Shader;
-import me.cortex.nvidium.sodiumCompat.ShaderLoader;
-import me.cortex.nvidium.util.DownloadTaskStream;
-import net.minecraft.resources.ResourceLocation;
-import org.lwjgl.system.MemoryUtil;
-
 import static me.cortex.nvidium.gl.shader.ShaderType.FRAGMENT;
 import static me.cortex.nvidium.gl.shader.ShaderType.MESH;
 import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
 import static org.lwjgl.opengl.NVMeshShader.glDrawMeshTasksNV;
 
+import net.minecraft.util.ResourceLocation;
+
+import org.lwjgl.system.MemoryUtil;
+
+import me.cortex.nvidium.gl.buffers.Buffer;
+import me.cortex.nvidium.gl.shader.Shader;
+import me.cortex.nvidium.sodiumCompat.ShaderLoader;
+import me.cortex.nvidium.util.DownloadTaskStream;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+
+@Lwjgl3Aware
 public class RegionVisibilityTracker {
+
     private final Shader shader = Shader.make()
-            .addSource(MESH, ShaderLoader.parse(ResourceLocation.fromNamespaceAndPath("nvidium", "occlusion/queries/region/mesh.glsl")))
-            .addSource(FRAGMENT, ShaderLoader.parse(ResourceLocation.fromNamespaceAndPath("nvidium", "occlusion/queries/region/fragment.frag")))
-            .compile();
+        .addSource(MESH, ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/queries/region/mesh.glsl")))
+        .addSource(
+            FRAGMENT,
+            ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/queries/region/fragment.frag")))
+        .compile();
 
     private final DownloadTaskStream downStream;
     private final int[] frustum;
     private final int[] visible;
+
     public RegionVisibilityTracker(DownloadTaskStream downStream, int maxRegions) {
         this.downStream = downStream;
         visible = new int[maxRegions];
@@ -33,26 +41,26 @@ public class RegionVisibilityTracker {
     }
 
     private int fram = 0;
-    //This is kind of evil in the fact that it just reuses the visibility buffer
+
+    // This is kind of evil in the fact that it just reuses the visibility buffer
     public void computeVisibility(int regionCount, Buffer regionVisibilityBuffer, short[] regionMapping) {
         shader.bind();
         fram++;
-        glDrawMeshTasksNV(0,regionCount);
+        glDrawMeshTasksNV(0, regionCount);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         downStream.download(regionVisibilityBuffer, 0, regionCount, ptr -> {
             for (int i = 0; i < regionMapping.length; i++) {
                 if (MemoryUtil.memGetByte(ptr + i) == 1) {
-                    //System.out.println(regionMapping[i] + " was visible");
+                    // System.out.println(regionMapping[i] + " was visible");
                     frustum[regionMapping[i]]++;
                     visible[regionMapping[i]] = fram;
                 } else {
-                    //System.out.println(regionMapping[i] + " was not visible");
+                    // System.out.println(regionMapping[i] + " was not visible");
                     frustum[regionMapping[i]]++;
                 }
             }
         });
     }
-
 
     public void delete() {
         shader.delete();
@@ -68,8 +76,8 @@ public class RegionVisibilityTracker {
         int id = -1;
         for (int i = 0; i < maxIndex; i++) {
             if (frustum[i] <= 200) continue;
-            int rank =  - visible[i];
-            //int rank = -visible[i];
+            int rank = -visible[i];
+            // int rank = -visible[i];
             if (maxRank < rank) {
                 maxRank = rank;
                 id = i;
