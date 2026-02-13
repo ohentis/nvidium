@@ -235,47 +235,47 @@ public class SodiumResultCompatibility {
             if (solid != null) {
                 var range = solid.ranges()
                     .get(ModelQuadFacing.VALUES[i]);
-                if (range == null) {
-                    continue;
-                }
-                var part = range.vertexCount();
-                long src = MemoryUtil.memAddress(
-                    solid.vertexBuffer()
-                        .getDirectBuffer())
-                    + solidPartOffset * formatSize;
-                long dst = outPtr + offset * 4L * formatSize;
-                MemoryUtil.memCopy(src, dst, (long) part * formatSize);
+                if (range != null) {
+                    var part = range.vertexCount();
+                    long src = MemoryUtil.memAddress(
+                        solid.vertexBuffer()
+                            .getDirectBuffer())
+                        + solidPartOffset * formatSize;
+                    long dst = outPtr + offset * 4L * formatSize;
+                    MemoryUtil.memCopy(src, dst, (long) part * formatSize);
 
-                // Update the meta bits of the model format
-                for (int j = 0; j < part; j++) {
-                    long base = dst + (long) j * formatSize;
-                    updateSectionBounds(min, max, base);
+                    // Update the meta bits of the model format
+                    for (int j = 0; j < part; j++) {
+                        long base = dst + (long) j * formatSize;
+                        updateSectionBounds(min, max, base);
+                    }
+
+                    offset += part / 4;
+                    solidPartOffset += part;
                 }
 
-                offset += part / 4;
-                solidPartOffset += part;
             }
             if (cutout != null) {
                 var range = cutout.ranges()
                     .get(ModelQuadFacing.VALUES[i]);
-                if (range == null) {
-                    continue;
-                }
-                var part = range.vertexCount();
-                long src = MemoryUtil.memAddress(
-                    cutout.vertexBuffer()
-                        .getDirectBuffer())
-                    + cutoutPartOffset * formatSize;
-                long dst = outPtr + offset * 4L * formatSize;
-                MemoryUtil.memCopy(src, dst, (long) part * formatSize);
+                if (range != null) {
 
-                // Update the meta bits of the model format
-                for (int j = 0; j < part; j++) {
-                    long base = dst + (long) j * formatSize;
-                    updateSectionBounds(min, max, base);
+                    var part = range.vertexCount();
+                    long src = MemoryUtil.memAddress(
+                        cutout.vertexBuffer()
+                            .getDirectBuffer())
+                        + cutoutPartOffset * formatSize;
+                    long dst = outPtr + offset * 4L * formatSize;
+                    MemoryUtil.memCopy(src, dst, (long) part * formatSize);
+
+                    // Update the meta bits of the model format
+                    for (int j = 0; j < part; j++) {
+                        long base = dst + (long) j * formatSize;
+                        updateSectionBounds(min, max, base);
+                    }
+                    offset += part / 4;
+                    cutoutPartOffset += part;
                 }
-                offset += part / 4;
-                cutoutPartOffset += part;
             }
             outOffsets[i] = (short) (offset - poff);
         }
@@ -306,19 +306,9 @@ public class SodiumResultCompatibility {
     private static void updateSectionBounds(Vector3i min, Vector3i max, long vertex) {
         float x, y, z;
 
-        if (Nvidium.config.use_sodium_vertex_format) {
-            int hi = MemoryUtil.memGetInt(vertex);
-            int lo = MemoryUtil.memGetInt(vertex + 4);
-
-            x = scalePos((((hi >> 0) & 0x3FF) << 10) | ((lo >> 0) & 0x3FF));
-            y = scalePos((((hi >> 10) & 0x3FF) << 10) | ((lo >> 10) & 0x3FF));
-            z = scalePos((((hi >> 20) & 0x3FF) << 10) | ((lo >> 20) & 0x3FF));
-
-        } else {
-            x = decodePosition(MemoryUtil.memGetShort(vertex));
-            y = decodePosition(MemoryUtil.memGetShort(vertex + 2));
-            z = decodePosition(MemoryUtil.memGetShort(vertex + 4));
-        }
+        x = decodePosition(MemoryUtil.memGetShort(vertex));
+        y = decodePosition(MemoryUtil.memGetShort(vertex + 2));
+        z = decodePosition(MemoryUtil.memGetShort(vertex + 4));
 
         updateSectionBounds(min, max, x, y, z);
     }

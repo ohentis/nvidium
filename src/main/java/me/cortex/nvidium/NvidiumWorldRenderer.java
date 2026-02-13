@@ -15,12 +15,12 @@ import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildOutput;
 import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkSortOutput;
 import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkTaskOutput;
 import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkMeshFormats;
+import org.embeddedt.embeddium.impl.render.terrain.SimpleWorldRenderer;
 import org.embeddedt.embeddium.impl.render.viewport.Viewport;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4fc;
 
 import com.gtnewhorizons.angelica.AngelicaMod;
-import com.gtnewhorizons.angelica.compat.mojang.Camera;
 
 import me.cortex.nvidium.gl.RenderDevice;
 import me.cortex.nvidium.managers.AsyncOcclusionTracker;
@@ -168,7 +168,7 @@ public class NvidiumWorldRenderer {
         }
     }
 
-    public void update(Camera camera, Viewport viewport, boolean spectator) {
+    public void update(SimpleWorldRenderer.CameraState camera, Viewport viewport, boolean spectator) {
         if (asyncChunkTracker != null) {
             asyncChunkTracker.update(viewport, camera, spectator);
         }

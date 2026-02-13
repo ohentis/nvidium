@@ -533,7 +533,7 @@ public class RenderPipeline {
         glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
         glDisableClientState(GL_DRAW_INDIRECT_UNIFIED_NV);
         glDepthFunc(GL11C.GL_LEQUAL);
-        glDisable(GL_DEPTH_TEST);
+        // glDisable(GL_DEPTH_TEST);
 
         // if ((err = glGetError()) != 0) {
         // throw new IllegalStateException("GLERROR: "+err);

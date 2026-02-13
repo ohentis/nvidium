@@ -47,7 +47,9 @@ public class FrameTimeProfiler {
     }
 
     public void startQuery() {
-        Minecraft.getMinecraft().gameSettings.showDebugInfo = true;
+        if (!Minecraft.getMinecraft().gameSettings.showDebugInfo) {
+            return;
+        }
         glDeleteQueries(startQuery);
         glDeleteQueries(endQuery);
         endQuery = GL15.glGenQueries();
@@ -56,7 +58,9 @@ public class FrameTimeProfiler {
     }
 
     public void endQuery() {
-        Minecraft.getMinecraft().gameSettings.showDebugInfo = true;
+        if (!Minecraft.getMinecraft().gameSettings.showDebugInfo) {
+            return;
+        }
         GL33.glQueryCounter(endQuery, GL33.GL_TIMESTAMP);
     }
 }

@@ -1,18 +1,24 @@
 package me.cortex.nvidium.mixin.sodium;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.embeddedt.embeddium.impl.render.chunk.ChunkRenderMatrices;
 import org.embeddedt.embeddium.impl.render.chunk.ChunkUpdateType;
 import org.embeddedt.embeddium.impl.render.chunk.RenderSection;
 import org.embeddedt.embeddium.impl.render.chunk.RenderSectionManager;
+import org.embeddedt.embeddium.impl.render.chunk.lists.ChunkRenderList;
 import org.embeddedt.embeddium.impl.render.chunk.lists.RenderListManager;
 import org.embeddedt.embeddium.impl.render.chunk.occlusion.OcclusionNode;
+import org.embeddedt.embeddium.impl.render.chunk.region.RenderRegion;
 import org.embeddedt.embeddium.impl.render.chunk.region.RenderRegionManager;
 import org.embeddedt.embeddium.impl.render.chunk.terrain.TerrainRenderPass;
 import org.embeddedt.embeddium.impl.render.viewport.CameraTransform;
 import org.embeddedt.embeddium.impl.render.viewport.Viewport;
+import org.embeddedt.embeddium.impl.util.iterator.ByteIterator;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -23,6 +29,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import com.gtnewhorizons.angelica.AngelicaMod;
 import com.gtnewhorizons.angelica.rendering.celeritas.AngelicaRenderPassConfiguration;
@@ -47,7 +54,6 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
     @Shadow
     @Final
     private Long2ReferenceMap<RenderSection> sectionByPosition;
-    // @Shadow private @NotNull Map<ChunkUpdateType, ArrayDeque<RenderSection>> taskLists;
     @Shadow
     @Final
     private int renderDistance;
@@ -214,36 +220,53 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
 
     }
 
-    // @Inject(method = "scheduleRebuild", at = @At(value = "INVOKE", target =
-    // "Lnet/caffeinemc/mods/sodium/client/render/chunk/RenderSection;setPendingUpdate(Lnet/caffeinemc/mods/sodium/client/render/chunk/ChunkUpdateType;)V",
-    // shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
-    // private void instantReschedule(int x, int y, int z, boolean important, CallbackInfo ci, RenderSection section,
-    // ChunkUpdateType pendingUpdate) {
-    // // this might result in the section being enqueued multiple times, if this gets executed,
-    // // and the async search sees it at the exactly wrong moment
-    // // This is a problem when sodium translucency sorting is enabled since translucentData.getGeometryPlanes()
-    // // can be null on the second ChunkBuildOutput resulting in a NPE
-    // if (Nvidium.IS_ENABLED && Nvidium.config.async_bfs) {
-    // var queue = taskLists.get(pendingUpdate);
-    // if (isSectionVisibleBfs(section) && queue.size() < pendingUpdate.getMaximumQueueSize() &&
-    // !queue.contains(section)) {
-    // ((IRenderSectionExtension)section).isSubmittedRebuild(true);
-    // taskLists.get(pendingUpdate).add(section);
-    // }
-    // }
-    // }
+    @Inject(
+        method = "scheduleSectionForRebuild",
+        at = @At(
+            value = "INVOKE",
+            target = "Lorg/embeddedt/embeddium/impl/render/chunk/RenderSection;requestUpdate(Lorg/embeddedt/embeddium/impl/render/chunk/ChunkUpdateType;)Z",
+            shift = At.Shift.AFTER),
+        locals = LocalCapture.CAPTURE_FAILHARD)
+    private void instantReschedule(int x, int y, int z, boolean important, CallbackInfo ci, RenderSection section,
+        ChunkUpdateType pendingUpdate) {
+        // this might result in the section being enqueued multiple times, if this gets executed,
+        // and the async search sees it at the exactly wrong moment
+        // This is a problem when sodium translucency sorting is enabled since translucentData.getGeometryPlanes()
+        // can be null on the second ChunkBuildOutput resulting in a NPE
+        if (Nvidium.IS_ENABLED && Nvidium.config.async_bfs) {
+            var queue = getCurrentRenderListManager().getRebuildLists()
+                .byUpdateType()
+                .get(pendingUpdate);
+            if (nvidium$isSectionVisibleBfs(
+                ((RenderListManagerAccessor) getCurrentRenderListManager()).nvidium$getOcclusionNode(x, y, z))
+                && queue.size() < pendingUpdate.getMaximumQueueSize()
+                && !queue.contains(section)) {
+                // ((IRenderSectionExtension)section).isSubmittedRebuild(true);
+                queue.add(section);
+            }
+        }
+    }
 
-    // @Inject(method = "scheduleSort(JZ)V", at = @At(value = "INVOKE", target =
-    // "Lnet/caffeinemc/mods/sodium/client/render/chunk/RenderSection;setPendingUpdate(Lnet/caffeinemc/mods/sodium/client/render/chunk/ChunkUpdateType;)V"),
-    // locals = LocalCapture.CAPTURE_FAILHARD)
-    // public void promoteScheduleSort(long sectionPos, boolean isDirectTrigger, CallbackInfo ci, RenderSection section,
-    // ChunkUpdateType pendingUpdate, SortBehavior.PriorityMode priorityMode) {
-    // if (Nvidium.IS_ENABLED && section.getPendingUpdate() != null && pendingUpdate != section.getPendingUpdate()) {
-    // // The sorter promoted our task, we need to change the taskList
-    // taskLists.get(section.getPendingUpdate()).remove(section);
-    // taskLists.get(pendingUpdate).add(section);
-    // }
-    // }
+    @Inject(
+        method = "scheduleTranslucencyUpdates",
+        at = @At(
+            value = "INVOKE",
+            target = "Lorg/embeddedt/embeddium/impl/render/chunk/RenderSection;setPendingUpdate(Lorg/embeddedt/embeddium/impl/render/chunk/ChunkUpdateType;)V"),
+        locals = LocalCapture.CAPTURE_FAILHARD)
+    public void promoteScheduleSort(int camSectionX, int camSectionY, int camSectionZ, CallbackInfo ci,
+        RenderListManager renderListManager, Map<ChunkUpdateType, ArrayDeque<RenderSection>> rebuildLists,
+        ArrayDeque sortRebuildList, ArrayDeque importantSortRebuildList, boolean allowImportant,
+        TerrainRenderPass translucentPass, Iterator it, ChunkRenderList entry, RenderRegion region,
+        ByteIterator sectionIterator, RenderSection section, ChunkUpdateType update, double dx, double dy, double dz,
+        double camDelta, boolean cameraChangedSection) {
+        if (Nvidium.IS_ENABLED && section.getPendingUpdate() != null && update != section.getPendingUpdate()) {
+            // The sorter promoted our task, we need to change the taskList
+            rebuildLists.get(section.getPendingUpdate())
+                .remove(section);
+            rebuildLists.get(update)
+                .add(section);
+        }
+    }
 
     @Inject(method = "getVisibleChunkCount", at = @At("HEAD"), cancellable = true)
     private void nvidium$injectVisibilityCount(CallbackInfoReturnable<Integer> cir) {

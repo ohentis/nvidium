@@ -14,7 +14,7 @@
     "sodium.MixinRenderSection",
     "sodium.MixinRenderSectionManager",
     "sodium.MixinSodiumOptionsGUI",
-    "sodium.MixinSodiumWorldRenderer"
+    "sodium.MixinSimpleWorldRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

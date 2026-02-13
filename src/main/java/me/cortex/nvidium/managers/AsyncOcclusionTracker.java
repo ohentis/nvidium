@@ -20,12 +20,11 @@ import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkTaskOutput;
 import org.embeddedt.embeddium.impl.render.chunk.compile.executor.ChunkJobResult;
 import org.embeddedt.embeddium.impl.render.chunk.lists.RenderListManager;
 import org.embeddedt.embeddium.impl.render.chunk.occlusion.OcclusionCuller;
+import org.embeddedt.embeddium.impl.render.terrain.SimpleWorldRenderer;
 import org.embeddedt.embeddium.impl.render.viewport.Viewport;
 import org.jetbrains.annotations.Nullable;
 
-import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
 import com.gtnewhorizons.angelica.AngelicaMod;
-import com.gtnewhorizons.angelica.compat.mojang.Camera;
 
 import me.cortex.nvidium.RenderPipeline;
 import me.cortex.nvidium.mixin.sodium.RenderListManagerAccessor;
@@ -144,7 +143,7 @@ public class AsyncOcclusionTracker {
         }
     }
 
-    public final void update(Viewport viewport, Camera camera, boolean spectator) {
+    public final void update(Viewport viewport, SimpleWorldRenderer.CameraState camera, boolean spectator) {
         this.shouldUseOcclusionCulling = this.shouldUseOcclusionCulling(camera, spectator);
 
         this.viewport = viewport;
@@ -199,10 +198,10 @@ public class AsyncOcclusionTracker {
         return distance;
     }
 
-    private boolean shouldUseOcclusionCulling(Camera camera, boolean spectator) {
-        BlockPos origin = camera.getBlockPos();
+    private boolean shouldUseOcclusionCulling(SimpleWorldRenderer.CameraState camera, boolean spectator) {
+
         boolean useOcclusionCulling;
-        if (spectator && this.world.getBlock(origin.x, origin.y, origin.z)
+        if (spectator && this.world.getBlock((int) camera.x(), (int) camera.y(), (int) camera.z())
             .isOpaqueCube()) {
             useOcclusionCulling = false;
         } else {

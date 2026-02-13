@@ -1,5 +1,11 @@
-package me.cortex.nvidium.mixin.sodium;
-
+// package me.cortex.nvidium.mixin.sodium;
+//
+// import me.cortex.nvidium.Nvidium;
+// import me.cortex.nvidium.config.TranslucencySortingLevel;
+// import org.spongepowered.asm.mixin.Mixin;
+// import org.spongepowered.asm.mixin.injection.Inject;
+// import me.jellysquid.mods.sodium.client.gui.SodiumGameOptions
+//
 // @Mixin(value = SodiumGameOptions.DebugSettings.class, remap = false)
 // public class MixinPerformanceSettings {
 // @Inject(method =
