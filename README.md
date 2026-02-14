@@ -9,6 +9,7 @@ terrain geometry at very playable framerates. This is a port of Nvidium for 1.7.
 
 ## Incompatibilities
  - Custom NPCs (runs fine, visual issues)
+ - Fluxloader
 
 ## Planned Features
  - Backport Bobby
