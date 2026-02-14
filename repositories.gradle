@@ -1,0 +1,11 @@
+// Add any additional repositories for your dependencies here.
+
+repositories {
+    maven {
+        name = 'taumc'
+        url = 'https://maven.taumc.org/releases'
+        content {
+            includeGroup 'org.taumc'
+        }
+    }
+}
