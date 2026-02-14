@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL;
 
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import me.cortex.nvidium.config.NvidiumConfig;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
@@ -18,7 +19,7 @@ public class Nvidium {
     public static final String MODID = "nvidium";
     public static final Logger LOGGER = LogManager.getLogger(MODID);
     public static boolean IS_COMPATIBLE = true;
-    public static boolean IS_ENABLED = true;
+    public static boolean IS_ENABLED = false;
     public static boolean IS_DEBUG = System.getProperty("nvidium.isDebug", "false")
         .equals("TRUE");
     public static boolean SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER = true;
@@ -57,5 +58,13 @@ public class Nvidium {
     public void preInit(FMLPreInitializationEvent event) {
         NvidiumConfig.setConfigFile(event.getSuggestedConfigurationFile());
         config = NvidiumConfig.loadOrCreate();
+    }
+
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        if (event.getSide()
+            .isClient()) {
+            checkSystemIsCapable();
+        }
     }
 }

@@ -21,7 +21,7 @@ public class NvidiumConfig {
     public int max_geometry_memory = 2048;
     public boolean automatic_memory = true;
 
-    public boolean async_bfs = true;
+    public boolean async_bfs = false;
 
     public int region_keep_distance = 32;
 
