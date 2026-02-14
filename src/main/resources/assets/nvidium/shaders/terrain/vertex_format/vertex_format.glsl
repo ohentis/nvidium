@@ -12,7 +12,7 @@ float getVertexAlphaCutoff(uint v) {
 
 vec4 sampleLight(vec2 uv) {
     //Its divided by 16 to match sodium/vanilla (it can never be 1 which is funny)
-    return vec4(texture(tex_light, uv).rgb, 1);
+    return vec4(texture(tex_light, clamp(uv, vec2(0.5 / 16.0), vec2(15.5 / 16.0))).rgb, 1);
 }
 
 vec3 computeMultiplier(Vertex V) {

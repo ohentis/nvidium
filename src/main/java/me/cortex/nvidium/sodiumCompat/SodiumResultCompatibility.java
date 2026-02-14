@@ -160,19 +160,11 @@ public class SodiumResultCompatibility {
                     long base = src + (long) j * formatSize;
 
                     float x, y, z;
-                    if (Nvidium.config.use_sodium_vertex_format) {
-                        int hi = MemoryUtil.memGetInt(base);
-                        int lo = MemoryUtil.memGetInt(base + 4);
 
-                        x = scalePos((((hi >> 0) & 0x3FF) << 10) | ((lo >> 0) & 0x3FF));
-                        y = scalePos((((hi >> 10) & 0x3FF) << 10) | ((lo >> 10) & 0x3FF));
-                        z = scalePos((((hi >> 20) & 0x3FF) << 10) | ((lo >> 20) & 0x3FF));
+                    x = decodePosition(MemoryUtil.memGetShort(base));
+                    y = decodePosition(MemoryUtil.memGetShort(base + 2));
+                    z = decodePosition(MemoryUtil.memGetShort(base + 4));
 
-                    } else {
-                        x = decodePosition(MemoryUtil.memGetShort(base));
-                        y = decodePosition(MemoryUtil.memGetShort(base + 2));
-                        z = decodePosition(MemoryUtil.memGetShort(base + 4));
-                    }
                     updateSectionBounds(min, max, base);
 
                     cx += x;

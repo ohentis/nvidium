@@ -585,7 +585,7 @@ public class RenderPipeline {
                 .raster(prevRegionCount, translucencyCommandBuffer.getDeviceAddress(), transluscentFrameTimeProfiler);
             renderSystem.disableBlend();
             renderSystem.defaultBlendFunc();
-            glDisable(GL_DEPTH_TEST);
+            // glDisable(GL_DEPTH_TEST);
         }
 
         glDisableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);

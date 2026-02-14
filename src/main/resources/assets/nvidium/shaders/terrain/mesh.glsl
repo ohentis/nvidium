@@ -93,7 +93,7 @@ void putVertex(uint id, Vertex V) {
     #ifdef RENDER_FOG
     vec3 pos = decodeVertexPosition(V)+origin;
     vec3 exactPos = pos+subchunkOffset.xyz;
-    OUT[id].fogLerp = clamp(computeFogLerp(exactPos, isCylindricalFog, fogStart, fogEnd) * fogColour.a, 0, 1);
+    OUT[id].fogLerp = clamp(computeFogLerp(exactPos, isCylindricalFog, fogStart, fogEnd) * float(fogColour.a) /255, 0, 1);
     #endif
 
     OUT[id].uv = decodeVertexUV(V);

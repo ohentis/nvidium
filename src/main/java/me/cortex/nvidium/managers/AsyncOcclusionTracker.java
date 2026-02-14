@@ -18,6 +18,7 @@ import org.embeddedt.embeddium.impl.render.chunk.RenderSection;
 import org.embeddedt.embeddium.impl.render.chunk.RenderSectionFlags;
 import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkTaskOutput;
 import org.embeddedt.embeddium.impl.render.chunk.compile.executor.ChunkJobResult;
+import org.embeddedt.embeddium.impl.render.chunk.data.MinecraftBuiltRenderSectionData;
 import org.embeddedt.embeddium.impl.render.chunk.lists.RenderListManager;
 import org.embeddedt.embeddium.impl.render.chunk.occlusion.OcclusionCuller;
 import org.embeddedt.embeddium.impl.render.terrain.SimpleWorldRenderer;
@@ -110,6 +111,13 @@ public class AsyncOcclusionTracker {
                             .z())
                         < 1024) {
                     blockEntitySections.add(section);
+                }
+                if (animateVisibleSpritesOnly && (section.getVisualsServiceFlags()&(1<<RenderSectionFlags.HAS_ANIMATED_SPRITES)) != 0 &&
+                    section.getSquaredDistance(viewport.getChunkCoord().x(),viewport.getChunkCoord().y(),viewport.getChunkCoord().z()) < 1024) {//32 rd max chunk distance (i.e. only animate sprites up to 32 chunks away)
+                    var animatedSprites = ((MinecraftBuiltRenderSectionData<TextureAtlasSprite,?>)section.getBuiltContext()).animatedSprites;
+                    if (animatedSprites != null) {
+                        animatedSpriteSet.addAll(animatedSprites);
+                    }
                 }
 
             };

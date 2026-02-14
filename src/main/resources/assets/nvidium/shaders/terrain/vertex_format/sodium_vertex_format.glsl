@@ -26,11 +26,11 @@ vec2 decodeVertexUVBias(Vertex v) {
 }
 
 vec2 decodeVertexUV(Vertex v) {
-    return (decodeVertexUVBias(v) * texCoordShrink) + decodeVertexRawUV(v);
+    return (decodeVertexUVBias(v) * 0) + decodeVertexRawUV(v); //I don't know what the bias is for, but I am disabling it for now.
 }
 
 vec2 decodeLightUV(Vertex v) {
-    return vec2(v.blockLight, v.skyLight)/256.0;
+    return vec2(v.skyLight, v.blockLight)/256.0;
 }
 
 bool hasMipping(Vertex v) {

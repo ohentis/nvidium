@@ -58,8 +58,7 @@ public class NvidiumCompactChunkVertex implements ChunkVertexType {
                 ptr + 4,
                 (encodePosition(vertex.z) << 0) | (encodeDrawParameters(material.packed) << 16)
                     | ((light & 0xFF) << 24));
-            MemoryUtil
-                .memPutInt(ptr + 8, (encodeColor(vertex.color, vertex.light) << 0) | (((light >> 8) & 0xFF) << 24));
+            MemoryUtil.memPutInt(ptr + 8, (encodeColor(vertex.color, 1) << 0) | (((light >> 8) & 0xFF) << 24));
             MemoryUtil.memPutInt(ptr + 12, encodeTexture(vertex.u, vertex.v));
 
             ptr += STRIDE;

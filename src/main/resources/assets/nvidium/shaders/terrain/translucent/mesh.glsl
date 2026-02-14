@@ -65,7 +65,7 @@ void emitVertex(uint vertexBaseId, uint innerId) {
 
 #ifndef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
     #ifdef RENDER_FOG
-    float fogLerp = clamp(computeFogLerp(pos+subchunkOffset.xyz, isCylindricalFog, fogStart, fogEnd) * fogColour.a, 0, 1);
+    float fogLerp = clamp(computeFogLerp(pos+subchunkOffset.xyz, isCylindricalFog, fogStart, fogEnd) * float(fogColour.a) /255, 0, 1);
     OUT[outId].fogLerp = float16_t(fogLerp);
     #endif
 

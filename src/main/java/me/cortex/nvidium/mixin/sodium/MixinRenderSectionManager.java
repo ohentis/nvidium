@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Supplier;
 
+import me.cortex.nvidium.sodiumCompat.NvidiumCompactChunkVertex;
 import org.embeddedt.embeddium.impl.render.chunk.ChunkRenderMatrices;
 import org.embeddedt.embeddium.impl.render.chunk.ChunkUpdateType;
 import org.embeddedt.embeddium.impl.render.chunk.RenderSection;
 import org.embeddedt.embeddium.impl.render.chunk.RenderSectionManager;
+import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildContext;
 import org.embeddedt.embeddium.impl.render.chunk.lists.ChunkRenderList;
 import org.embeddedt.embeddium.impl.render.chunk.lists.RenderListManager;
 import org.embeddedt.embeddium.impl.render.chunk.occlusion.OcclusionNode;
@@ -26,6 +29,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -82,18 +86,18 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
         // }
     }
 
-    // @ModifyArg(method =
-    // "<init>(Lorg/embeddedt/embeddium/impl/render/chunk/RenderPassConfiguration;Ljava/util/function/Supplier;Ljava/util/function/BiFunction;ILorg/embeddedt/embeddium/impl/gl/device/CommandList;IIIZ)V",
-    // at = @At(value = "INVOKE", target =
-    // "Lorg/embeddedt/embeddium/impl/render/chunk/compile/executor/ChunkBuilder;<init>(Lorg/embeddedt/embeddium/impl/render/chunk/compile/executor/ChunkBuilder$ManagedBlocker;Ljava/util/function/Supplier;I)V",
-    // remap = true), index = 1)
-    // private ChunkVertexType modifyVertexType(ChunkVertexType vertexType) {
-    // updateNvidiumIsEnabled();
-    // if (Nvidium.IS_ENABLED && !Nvidium.config.use_sodium_vertex_format) {
-    // return NvidiumCompactChunkVertex.INSTANCE;
-    // }
-    // return vertexType;
-    // }
+//     @ModifyArg(method =
+//     "<init>(Lorg/embeddedt/embeddium/impl/render/chunk/RenderPassConfiguration;Ljava/util/function/Supplier;Ljava/util/function/BiFunction;ILorg/embeddedt/embeddium/impl/gl/device/CommandList;IIIZ)V",
+//     at = @At(value = "INVOKE", target =
+//     "Lorg/embeddedt/embeddium/impl/render/chunk/compile/executor/ChunkBuilder;<init>(Lorg/embeddedt/embeddium/impl/render/chunk/compile/executor/ChunkBuilder$ManagedBlocker;Ljava/util/function/Supplier;I)V",
+//     remap = true), index = 1)
+//     private Supplier<ChunkBuildContext> modifyVertexType(Supplier<ChunkBuildContext> contextSupplier) {
+//     nvidium$updateNvidiumIsEnabled();
+//     if (Nvidium.IS_ENABLED && !Nvidium.config.use_sodium_vertex_format) {
+//     return NvidiumCompactChunkVertex.INSTANCE;
+//     }
+//     return contextSupplier;
+//     }
 
     @Inject(method = "destroy", at = @At("TAIL"))
     private void nvidium$destroy(CallbackInfo ci) {

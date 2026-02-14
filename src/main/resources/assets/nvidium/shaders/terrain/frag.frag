@@ -51,7 +51,7 @@ void applyFog(inout vec3 colour) {
     //Reverse the transformation and compute the original position
     vec4 clip = (MVPInv * vec4((gl_FragCoord.xy/screenSize)-1, gl_FragCoord.z*2-1, 1));
     vec3 pos = clip.xyz/clip.w;
-    float fogLerp = clamp(computeFogLerp(pos, isCylindricalFog, fogStart, fogEnd) * fogColour.a, 0,1);
+    float fogLerp = clamp(computeFogLerp(pos, isCylindricalFog, fogStart, fogEnd) * float(fogColour.a) /255, 0,1);
 #endif
     colour = mix(colour, fogColour.rgb, fogLerp);
 }
