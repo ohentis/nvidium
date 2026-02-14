@@ -8,7 +8,7 @@ terrain geometry at very playable framerates. This is a port of Nvidium for 1.7.
 ### Requires Angelica 2.0.0-alpha19, lwjgl3ify 2.1.18 and an nvidia gtx 1600 series or newer to run (turing+ architecture)
 
 ## Incompatibilities
- - TODO
+ - Custom NPCs (runs fine, visual issues)
 
 ## Planned Features
  - Backport Bobby
