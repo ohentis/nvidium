@@ -70,18 +70,6 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
         return regions;
     }
 
-    // @ModifyArg(method =
-    // "<init>(Lorg/embeddedt/embeddium/impl/render/chunk/RenderPassConfiguration;Ljava/util/function/Supplier;Ljava/util/function/BiFunction;ILorg/embeddedt/embeddium/impl/gl/device/CommandList;IIIZ)V",
-    // at = @At(value = "INVOKE", target =
-    // "Lorg/embeddedt/embeddium/impl/render/chunk/compile/executor/ChunkBuilder;<init>(Lorg/embeddedt/embeddium/impl/render/chunk/compile/executor/ChunkBuilder$ManagedBlocker;Ljava/util/function/Supplier;I)V",
-    // remap = true), index = 1)
-    // private Supplier<ChunkBuildContext> modifyVertexType(Supplier<ChunkBuildContext> contextSupplier) {
-    // Nvidium.updateNvidiumIsEnabled();
-    // if (Nvidium.IS_ENABLED && !Nvidium.config.use_sodium_vertex_format) {
-    // return NvidiumCompactChunkVertex.INSTANCE;
-    // }
-    // return contextSupplier;
-    // }
 
     @Inject(method = "destroy", at = @At("TAIL"))
     private void nvidium$destroy(CallbackInfo ci) {
@@ -171,24 +159,12 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
         return delta <= 1;
     }
 
-    /**
-     * @author Ohentis
-     * @reason I'll do whatever works
-     */
-    @Overwrite
-    public boolean isSectionVisible(int x, int y, int z) {
-        OcclusionNode render = ((RenderListManagerAccessor) getCurrentRenderListManager())
-            .nvidium$getOcclusionNode(x, y, z);
-        if (render == null) {
-            return false;
-        } else {
-            if (Nvidium.IS_ENABLED && Nvidium.config.async_bfs) {
-                return nvidium$isSectionVisibleBfs(render);
-            } else {
-                return render.getLastVisibleFrame() >= getCurrentRenderListManager().getLastUpdatedFrame();
-            }
-        }
 
+    @Inject(method = "isSectionVisible", at = @At("TAIL"), cancellable = true)
+    private void nvidium$overrideIsSectionVisible(int x, int y, int z, CallbackInfoReturnable<Boolean> cir) {
+        if (Nvidium.IS_ENABLED && Nvidium.config.async_bfs) {
+            cir.setReturnValue(nvidium$isSectionVisibleBfs(((RenderListManagerAccessor) getCurrentRenderListManager()).nvidium$getOcclusionNode(x, y, z)));
+        }
     }
 
     @Inject(method = "tickVisibleRenders", at = @At("HEAD"), cancellable = true)
