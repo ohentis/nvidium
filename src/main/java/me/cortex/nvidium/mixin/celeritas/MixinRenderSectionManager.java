@@ -1,4 +1,4 @@
-package me.cortex.nvidium.mixin.sodium;
+package me.cortex.nvidium.mixin.celeritas;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

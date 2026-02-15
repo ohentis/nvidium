@@ -1,10 +1,10 @@
-package me.cortex.nvidium.mixin.sodium;
+package me.cortex.nvidium.mixin.celeritas;
 
 import org.embeddedt.embeddium.impl.render.chunk.lists.RenderListManager;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(value = RenderListManager.class, remap = false)
-public class RenderListManagerMixin {
+public class MixinRenderListManager {
 
     // @Unique
     // private boolean isSectionVisibleBfs(OcclusionNode node) {

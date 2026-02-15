@@ -57,7 +57,7 @@ import me.cortex.nvidium.gl.buffers.IDeviceMappedBuffer;
 import me.cortex.nvidium.managers.RegionManager;
 import me.cortex.nvidium.managers.RegionVisibilityTracker;
 import me.cortex.nvidium.managers.SectionManager;
-import me.cortex.nvidium.mixin.sodium.CompactChunkVertexAccessor;
+import me.cortex.nvidium.mixin.celeritas.CompactChunkVertexAccessor;
 import me.cortex.nvidium.renderers.PrimaryTerrainRasterizer;
 import me.cortex.nvidium.renderers.RegionRasterizer;
 import me.cortex.nvidium.renderers.SectionRasterizer;

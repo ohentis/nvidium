@@ -1,4 +1,4 @@
-package me.cortex.nvidium.mixin.sodium;
+package me.cortex.nvidium.mixin.angelica;
 
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;

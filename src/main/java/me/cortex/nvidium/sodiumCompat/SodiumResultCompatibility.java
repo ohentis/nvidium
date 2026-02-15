@@ -14,7 +14,7 @@ import com.gtnewhorizons.angelica.rendering.celeritas.AngelicaRenderPassConfigur
 import it.unimi.dsi.fastutil.longs.LongArrays;
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.config.TranslucencySortingLevel;
-import me.cortex.nvidium.mixin.sodium.CameraAccessor;
+import me.cortex.nvidium.mixin.angelica.CameraAccessor;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
 @Lwjgl3Aware

@@ -1,4 +1,4 @@
-package me.cortex.nvidium.mixin.sodium;
+package me.cortex.nvidium.mixin.angelica;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.spongepowered.asm.mixin.Final;

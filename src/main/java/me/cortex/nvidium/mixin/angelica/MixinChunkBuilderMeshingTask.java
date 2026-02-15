@@ -1,4 +1,4 @@
-package me.cortex.nvidium.mixin.sodium;
+package me.cortex.nvidium.mixin.angelica;
 
 import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildContext;
 import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildOutput;

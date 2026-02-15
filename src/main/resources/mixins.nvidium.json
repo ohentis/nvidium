@@ -5,28 +5,28 @@
   "client": [
     "minecraft.MixinFogRenderer",
     "minecraft.MixinMinecraft",
-    "sodium.MixinChunkBuilder",
-    "sodium.MixinChunkBuilderMeshingTask",
-    "sodium.MixinChunkBuildOutput",
-    "sodium.MixinChunkJobQueue",
-    "sodium.MixinOptionFlag",
-    "sodium.MixinRenderRegionManager",
-    "sodium.MixinRenderSection",
-    "sodium.MixinRenderSectionManager",
-    "sodium.MixinSimpleWorldRenderer",
-    "sodium.MixinSodiumOptionsGUI"
+    "celeritas.MixinChunkBuilder",
+    "angelica.MixinChunkBuilderMeshingTask",
+    "celeritas.MixinChunkBuildOutput",
+    "celeritas.MixinChunkJobQueue",
+    "angelica.MixinOptionFlag",
+    "celeritas.MixinRenderRegionManager",
+    "celeritas.MixinRenderSection",
+    "celeritas.MixinRenderSectionManager",
+    "celeritas.MixinSimpleWorldRenderer",
+    "angelica.MixinSodiumOptionsGUI"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
-    "sodium.AngelicaRenderSectionManagerAccessor",
-    "sodium.CameraAccessor",
-    "sodium.CompactChunkVertexAccessor",
-    "sodium.MixinAngelicaRenderSectionManager",
-    "sodium.MixinCeleritasWorldRenderer",
-    "sodium.RenderListManagerAccessor",
-    "sodium.RenderListManagerMixin",
-    "sodium.RenderSectionManagerAccessor"
+    "angelica.AngelicaRenderSectionManagerAccessor",
+    "angelica.CameraAccessor",
+    "celeritas.CompactChunkVertexAccessor",
+    "angelica.MixinAngelicaRenderSectionManager",
+    "celeritas.MixinCeleritasWorldRenderer",
+    "celeritas.RenderListManagerAccessor",
+    "celeritas.MixinRenderListManager",
+    "celeritas.RenderSectionManagerAccessor"
   ]
 }

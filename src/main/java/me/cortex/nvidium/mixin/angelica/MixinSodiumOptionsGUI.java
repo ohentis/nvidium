@@ -1,4 +1,4 @@
-package me.cortex.nvidium.mixin.sodium;
+package me.cortex.nvidium.mixin.angelica;
 
 import java.util.EnumSet;
 import java.util.HashSet;

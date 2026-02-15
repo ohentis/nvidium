@@ -1,4 +1,4 @@
-package me.cortex.nvidium.mixin.sodium;
+package me.cortex.nvidium.mixin.celeritas;
 
 import org.embeddedt.embeddium.impl.render.chunk.lists.RenderListManager;
 import org.embeddedt.embeddium.impl.render.chunk.occlusion.OcclusionCuller;

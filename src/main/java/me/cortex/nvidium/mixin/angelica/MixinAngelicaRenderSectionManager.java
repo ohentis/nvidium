@@ -1,4 +1,4 @@
-package me.cortex.nvidium.mixin.sodium;
+package me.cortex.nvidium.mixin.angelica;
 
 import net.minecraft.client.multiplayer.WorldClient;
 
@@ -16,6 +16,8 @@ import com.gtnewhorizons.angelica.rendering.celeritas.threading.ChunkTaskProvide
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.NvidiumWorldRenderer;
 import me.cortex.nvidium.managers.AsyncOcclusionTracker;
+import me.cortex.nvidium.mixin.celeritas.MixinRenderSectionManager;
+import me.cortex.nvidium.mixin.celeritas.RenderSectionManagerAccessor;
 import me.cortex.nvidium.sodiumCompat.INvidiumWorldRendererSetter;
 import me.cortex.nvidium.sodiumCompat.IrisCheck;
 

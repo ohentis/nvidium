@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import com.gtnewhorizons.angelica.AngelicaMod;
 
 import me.cortex.nvidium.RenderPipeline;
-import me.cortex.nvidium.mixin.sodium.RenderListManagerAccessor;
+import me.cortex.nvidium.mixin.celeritas.RenderListManagerAccessor;
 import me.cortex.nvidium.sodiumCompat.IRenderSectionExtension;
 
 public class AsyncOcclusionTracker {
