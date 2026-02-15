@@ -13,4 +13,5 @@ jobs:
     uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/release-tags.yml@master
     with:
       workspace: setupDecompWorkspace
+      java-version: 25
     secrets: inherit
