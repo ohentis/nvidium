@@ -6,10 +6,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL;
 
+import com.gtnewhorizons.angelica.AngelicaMod;
+
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import me.cortex.nvidium.config.NvidiumConfig;
+import me.cortex.nvidium.config.TranslucencySortingLevel;
+import me.cortex.nvidium.sodiumCompat.IrisCheck;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
 @Lwjgl3Aware
@@ -65,6 +69,17 @@ public class Nvidium {
         if (event.getSide()
             .isClient()) {
             checkSystemIsCapable();
+        }
+    }
+
+    public static void updateNvidiumIsEnabled() {
+        Nvidium.IS_ENABLED = (!Nvidium.FORCE_DISABLE) && Nvidium.IS_COMPATIBLE && IrisCheck.checkIrisShouldDisable();
+
+        // Disable sodium translucency sorting since nvidium is doing it
+        if (Nvidium.IS_ENABLED) {
+            LOGGER.info("Ensuring translucency sorting is enabled");
+            AngelicaMod.options().performance.translucencySorting = (Nvidium.config.translucency_sorting_level
+                == TranslucencySortingLevel.SODIUM);
         }
     }
 }

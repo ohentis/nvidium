@@ -42,7 +42,6 @@ import me.cortex.nvidium.NvidiumWorldRenderer;
 import me.cortex.nvidium.sodiumCompat.INvidiumWorldRendererGetter;
 import me.cortex.nvidium.sodiumCompat.INvidiumWorldRendererSetter;
 import me.cortex.nvidium.sodiumCompat.IRenderSectionExtension;
-import me.cortex.nvidium.sodiumCompat.IrisCheck;
 
 @Mixin(value = RenderSectionManager.class, remap = false, priority = 1500) // Ensure priority over Iris so it doesn't
                                                                            // hijack our ChunkVertexFormat
@@ -71,24 +70,13 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
         return regions;
     }
 
-    @Unique
-    private static void nvidium$updateNvidiumIsEnabled() {
-        Nvidium.IS_ENABLED = (!Nvidium.FORCE_DISABLE) && Nvidium.IS_COMPATIBLE && IrisCheck.checkIrisShouldDisable();
-
-        // // Disable sodium translucency sorting since nvidium is doing it
-        // if (Nvidium.IS_ENABLED && Nvidium.config.translucency_sorting_level == TranslucencySortingLevel.SODIUM) {
-        // LOGGER.info("Ensuring translucency sorting is enabled");
-        // SodiumClientMod.options().debug.terrainSortingEnabled = true;
-        // }
-    }
-
     // @ModifyArg(method =
     // "<init>(Lorg/embeddedt/embeddium/impl/render/chunk/RenderPassConfiguration;Ljava/util/function/Supplier;Ljava/util/function/BiFunction;ILorg/embeddedt/embeddium/impl/gl/device/CommandList;IIIZ)V",
     // at = @At(value = "INVOKE", target =
     // "Lorg/embeddedt/embeddium/impl/render/chunk/compile/executor/ChunkBuilder;<init>(Lorg/embeddedt/embeddium/impl/render/chunk/compile/executor/ChunkBuilder$ManagedBlocker;Ljava/util/function/Supplier;I)V",
     // remap = true), index = 1)
     // private Supplier<ChunkBuildContext> modifyVertexType(Supplier<ChunkBuildContext> contextSupplier) {
-    // nvidium$updateNvidiumIsEnabled();
+    // Nvidium.updateNvidiumIsEnabled();
     // if (Nvidium.IS_ENABLED && !Nvidium.config.use_sodium_vertex_format) {
     // return NvidiumCompactChunkVertex.INSTANCE;
     // }

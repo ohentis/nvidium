@@ -24,17 +24,13 @@ import me.cortex.nvidium.sodiumCompat.IrisCheck;
 @Mixin(value = AngelicaRenderSectionManager.class, remap = false)
 public abstract class MixinAngelicaRenderSectionManager extends MixinRenderSectionManager {
 
-    @Unique
-    private static void nvidium$updateNvidiumIsEnabled() {
-        Nvidium.IS_ENABLED = (!Nvidium.FORCE_DISABLE) && Nvidium.IS_COMPATIBLE && IrisCheck.checkIrisShouldDisable();
 
-    }
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void nvidium$init(RenderPassConfiguration<?> configuration, WorldClient world, int renderDistance,
         CommandList commandList, int minSection, int maxSection, int requestedThreads, ChunkTaskProvider taskProvider,
         CallbackInfo ci) {
-        nvidium$updateNvidiumIsEnabled();
+        Nvidium.updateNvidiumIsEnabled();
         if (Nvidium.IS_ENABLED) {
             if (nvidium$renderer != null) throw new IllegalStateException("Cannot have multiple world renderers");
             nvidium$renderer = new NvidiumWorldRenderer(
