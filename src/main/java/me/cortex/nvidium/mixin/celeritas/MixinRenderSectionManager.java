@@ -21,7 +21,6 @@ import org.embeddedt.embeddium.impl.render.viewport.Viewport;
 import org.embeddedt.embeddium.impl.util.iterator.ByteIterator;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -69,7 +68,6 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
     public RenderRegionManager nvidium$getRegions() {
         return regions;
     }
-
 
     @Inject(method = "destroy", at = @At("TAIL"))
     private void nvidium$destroy(CallbackInfo ci) {
@@ -159,11 +157,12 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
         return delta <= 1;
     }
 
-
     @Inject(method = "isSectionVisible", at = @At("TAIL"), cancellable = true)
     private void nvidium$overrideIsSectionVisible(int x, int y, int z, CallbackInfoReturnable<Boolean> cir) {
         if (Nvidium.IS_ENABLED && Nvidium.config.async_bfs) {
-            cir.setReturnValue(nvidium$isSectionVisibleBfs(((RenderListManagerAccessor) getCurrentRenderListManager()).nvidium$getOcclusionNode(x, y, z)));
+            cir.setReturnValue(
+                nvidium$isSectionVisibleBfs(
+                    ((RenderListManagerAccessor) getCurrentRenderListManager()).nvidium$getOcclusionNode(x, y, z)));
         }
     }
 
