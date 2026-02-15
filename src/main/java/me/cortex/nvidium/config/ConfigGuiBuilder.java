@@ -6,6 +6,7 @@ import java.util.List;
 import net.minecraft.client.resources.I18n;
 
 import com.google.common.collect.ImmutableList;
+import com.gtnewhorizons.angelica.AngelicaMod;
 import com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer;
 
 import me.cortex.nvidium.Nvidium;
@@ -183,9 +184,12 @@ public class ConfigGuiBuilder {
                                     I18n.format("nvidium.options.translucency_sorting.sections"),
                                     I18n.format("nvidium.options.translucency_sorting.quads"),
                                     I18n.format("nvidium.options.translucency_sorting.sodium") }))
-                        .setBinding(
-                            (opts, value) -> opts.translucency_sorting_level = value,
-                            opts -> opts.translucency_sorting_level)
+                        .setBinding((opts, value) -> {
+                            opts.translucency_sorting_level = value;
+                            if (value != TranslucencySortingLevel.SODIUM) {
+                                AngelicaMod.options().performance.translucencySorting = false;
+                            }
+                        }, opts -> opts.translucency_sorting_level)
                         .setEnabled(Nvidium.IS_ENABLED)
                         .setImpact(OptionImpact.MEDIUM)
                         // Technically, only need to reload when going from NONE->SECTIONS
