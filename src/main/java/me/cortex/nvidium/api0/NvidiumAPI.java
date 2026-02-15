@@ -1,6 +1,5 @@
 package me.cortex.nvidium.api0;
 
-import me.cortex.nvidium.NvidiumWorldRenderer;
 import org.joml.Matrix4fc;
 
 import com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer;
@@ -27,7 +26,8 @@ public class NvidiumAPI {
         if (Nvidium.IS_ENABLED) {
             var renderer = ((INvidiumWorldRendererGetter) CeleritasWorldRenderer.getInstance()).nvidium$getRenderer();
             if (renderer != null) {
-                renderer.getSectionManager().setHideBit(x, y, z, true);
+                renderer.getSectionManager()
+                    .setHideBit(x, y, z, true);
             }
         }
     }

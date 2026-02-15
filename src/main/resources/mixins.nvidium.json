@@ -26,7 +26,6 @@
     "angelica.MixinAngelicaRenderSectionManager",
     "celeritas.MixinCeleritasWorldRenderer",
     "celeritas.RenderListManagerAccessor",
-    "celeritas.MixinRenderListManager",
     "celeritas.RenderSectionManagerAccessor"
   ]
 }
