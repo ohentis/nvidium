@@ -1,19 +1,19 @@
 {
-  "required": true,
+  "required": false,
   "package": "me.cortex.nvidium.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
-    "minecraft.MixinEntityRenderer",
-    "celeritas.MixinChunkBuilder",
     "angelica.MixinChunkBuilderMeshingTask",
+    "angelica.MixinOptionFlag",
+    "angelica.MixinSodiumOptionsGUI",
+    "celeritas.MixinChunkBuilder",
     "celeritas.MixinChunkBuildOutput",
     "celeritas.MixinChunkJobQueue",
-    "angelica.MixinOptionFlag",
     "celeritas.MixinRenderRegionManager",
     "celeritas.MixinRenderSection",
     "celeritas.MixinRenderSectionManager",
     "celeritas.MixinSimpleWorldRenderer",
-    "angelica.MixinSodiumOptionsGUI"
+    "minecraft.MixinEntityRenderer"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -21,9 +21,11 @@
   "mixins": [
     "angelica.AngelicaRenderSectionManagerAccessor",
     "angelica.CameraAccessor",
-    "celeritas.CompactChunkVertexAccessor",
     "angelica.MixinAngelicaRenderSectionManager",
-    "celeritas.MixinCeleritasWorldRenderer",
+    "angelica.MixinCeleritasWorldRenderer",
+    "beddium.MixinArchaicRenderSectionManager",
+    "beddium.MixinSimpleChunkBuilderMeshingTask",
+    "celeritas.CompactChunkVertexAccessor",
     "celeritas.RenderListManagerAccessor",
     "celeritas.RenderSectionManagerAccessor"
   ]

@@ -1,7 +1,6 @@
 package me.cortex.nvidium.mojangCompat;
 //stolen from angelica
 import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
-import com.gtnewhorizons.angelica.compat.mojang.ChunkPos;
 import org.joml.Vector3i;
 
 // See if we can merge/mixin/extend ChunkPosition maybe?
@@ -17,12 +16,12 @@ public class ChunkSectionPos extends Vector3i {
     private ChunkSectionPos(int x, int y, int z) {
         super(x, y, z);
     }
-    public static com.gtnewhorizons.angelica.compat.mojang.ChunkSectionPos from(int x, int y, int z) {
-        return new com.gtnewhorizons.angelica.compat.mojang.ChunkSectionPos(x, y, z);
+    public static ChunkSectionPos from(int x, int y, int z) {
+        return new ChunkSectionPos(x, y, z);
     }
 
-    public static com.gtnewhorizons.angelica.compat.mojang.ChunkSectionPos from(BlockPos pos) {
-        return new com.gtnewhorizons.angelica.compat.mojang.ChunkSectionPos(getSectionCoord(pos.getX()), getSectionCoord(pos.getY()), getSectionCoord(pos.getZ()));
+    public static ChunkSectionPos from(BlockPos pos) {
+        return new ChunkSectionPos(getSectionCoord(pos.getX()), getSectionCoord(pos.getY()), getSectionCoord(pos.getZ()));
     }
 
     public static long asLong(int x, int y, int z) {
