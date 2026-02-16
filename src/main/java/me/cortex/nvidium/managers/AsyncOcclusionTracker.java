@@ -10,6 +10,8 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.ventooth.beddium.config.ModuleConfig;
+import me.cortex.nvidium.Nvidium;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.World;
 
@@ -76,8 +78,14 @@ public class AsyncOcclusionTracker {
             framesAhead.acquireUninterruptibly();
             if (!running) break;
             long startTime = System.currentTimeMillis();
-
-            final boolean animateVisibleSpritesOnly = AngelicaMod.options().performance.animateOnlyVisibleTextures;
+            final boolean animateVisibleSpritesOnly;
+            if(Nvidium.isWithAngelica()){
+                animateVisibleSpritesOnly = AngelicaMod.options().performance.animateOnlyVisibleTextures;
+            } else if (Nvidium.isWithBeddium()) {
+                animateVisibleSpritesOnly = ModuleConfig.ConservativeAnimatedTextures;
+            } else {
+                animateVisibleSpritesOnly = false;
+            }
             // The reason for batching is so that ordering is strongly defined
             List<RenderSection> chunkUpdates = new ArrayList<>();
             List<RenderSection> blockEntitySections = new ArrayList<>();

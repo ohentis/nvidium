@@ -1,5 +1,6 @@
 package me.cortex.nvidium;
 
+import cpw.mods.fml.client.config.GuiConfigEntries;
 import cpw.mods.fml.common.Loader;
 import net.minecraft.util.Util;
 
@@ -85,11 +86,20 @@ public class Nvidium {
         }
     }
 
+    private static Boolean WITH_ANGELICA;
+
     public static boolean isWithAngelica() {
-        return Loader.isModLoaded("angelica");
+        if(WITH_ANGELICA == null) {
+            WITH_ANGELICA = Loader.isModLoaded("angelica");
+        }
+        return WITH_ANGELICA;
     }
 
+    private static Boolean WITH_BEDDIUM;
     public static boolean isWithBeddium() {
-        return Loader.isModLoaded("beddium");
+        if(WITH_BEDDIUM == null) {
+            WITH_BEDDIUM = Loader.isModLoaded("beddium");
+        }
+        return WITH_BEDDIUM;
     }
 }
