@@ -3,19 +3,22 @@ package me.cortex.nvidium.renderers;
 import static me.cortex.nvidium.RenderPipeline.GL_DRAW_INDIRECT_ADDRESS_NV;
 import static me.cortex.nvidium.gl.shader.ShaderType.*;
 import static org.lwjgl.opengl.GL11C.*;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL33.glGenSamplers;
 import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
 import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
 
+import me.cortex.nvidium.Nvidium;
+import me.cortex.nvidium.mixin.minecraft.EntityRendererAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL12C;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL45;
 import org.lwjgl.opengl.GL45C;
 
 import com.gtnewhorizons.angelica.glsm.GLStateManager;
-import com.gtnewhorizons.angelica.mixins.interfaces.EntityRendererAccessor;
 
 import me.cortex.nvidium.gl.shader.Shader;
 import me.cortex.nvidium.sodiumCompat.ShaderLoader;
@@ -45,8 +48,13 @@ public class PrimaryTerrainRasterizer extends Phase {
     }
 
     private static void setTexture(int textureId, int bindingPoint) {
-        GLStateManager.glActiveTexture(33984 + bindingPoint);
-        GLStateManager.glBindTexture(GL_TEXTURE_2D, textureId);
+        if(Nvidium.isWithAngelica()) {
+            GLStateManager.glActiveTexture(GL13.GL_TEXTURE0 + bindingPoint);
+            GLStateManager.glBindTexture(GL_TEXTURE_2D, textureId);
+        } else if (Nvidium.isWithBeddium()) {
+            GL13.glActiveTexture(GL13.GL_TEXTURE0 + bindingPoint);
+            GL13.glBindTexture(GL_TEXTURE_2D, textureId);
+        }
     }
 
     public void raster(int regionCount, long commandAddr, FrameTimeProfiler frameTimeProfiler) {
@@ -56,7 +64,7 @@ public class PrimaryTerrainRasterizer extends Phase {
             .getTextureManager()
             .getTexture(new ResourceLocation("minecraft", "textures/atlas/blocks.png"))
             .getGlTextureId();
-        int lightId = ((EntityRendererAccessor) Minecraft.getMinecraft().entityRenderer).getLightmapTexture()
+        int lightId = ((EntityRendererAccessor) Minecraft.getMinecraft().entityRenderer).nvidium$getLightmapTexture()
             .getGlTextureId();
 
         GL45C.glBindSampler(0, blockSampler);

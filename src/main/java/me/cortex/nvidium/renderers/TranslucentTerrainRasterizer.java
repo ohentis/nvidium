@@ -8,11 +8,13 @@ import static org.lwjgl.opengl.GL33.glGenSamplers;
 import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
 import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
 
+import me.cortex.nvidium.Nvidium;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12C;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL45;
 import org.lwjgl.opengl.GL45C;
 
@@ -52,8 +54,13 @@ public class TranslucentTerrainRasterizer extends Phase {
     }
 
     private static void setTexture(int textureId, int bindingPoint) {
-        GLStateManager.glActiveTexture(33984 + bindingPoint);
-        GLStateManager.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
+        if(Nvidium.isWithAngelica()) {
+            GLStateManager.glActiveTexture(GL13.GL_TEXTURE0 + bindingPoint);
+            GLStateManager.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
+        } else if (Nvidium.isWithBeddium()) {
+            GL13.glActiveTexture(GL13.GL_TEXTURE0 + bindingPoint);
+            GL13.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
+        }
     }
 
     // Translucency is rendered in a very cursed and incorrect way

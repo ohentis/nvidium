@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.ventooth.beddium.config.ModuleConfig;
+import com.ventooth.beddium.modules.ConservativeAnimatedTextures.ext.TextureAtlasSpriteExt;
+import com.ventooth.beddium.modules.TerrainRendering.ArchaicRenderPassConfigurationBuilder;
 import org.embeddedt.embeddium.impl.render.chunk.ChunkRenderMatrices;
 import org.embeddedt.embeddium.impl.render.chunk.ChunkUpdateType;
 import org.embeddedt.embeddium.impl.render.chunk.RenderSection;
@@ -85,8 +88,7 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
     private void nvidium$deleteSection(RenderSection section) {
         if (Nvidium.IS_ENABLED) {
             if (Nvidium.config.region_keep_distance == 32
-                || Nvidium.config.region_keep_distance <= CeleritasWorldRenderer.getInstance()
-                    .getEffectiveRenderDistance()) {
+                || Nvidium.config.region_keep_distance <= (Nvidium.isWithAngelica()?CeleritasWorldRenderer.getInstance().getEffectiveRenderDistance(): com.ventooth.beddium.modules.TerrainRendering.CeleritasWorldRenderer.getEffectiveRenderDistance())) {
                 nvidium$renderer.deleteSection(section);
             }
         }
@@ -104,9 +106,9 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
         if (Nvidium.IS_ENABLED) {
             ci.cancel();
             pass.startDrawing();
-            if (pass == AngelicaRenderPassConfiguration.SOLID_PASS) {
+            if (pass == (Nvidium.isWithAngelica()?AngelicaRenderPassConfiguration.SOLID_PASS: ArchaicRenderPassConfigurationBuilder.SOLID_PASS)) {
                 nvidium$renderer.renderFrame(nvidium$viewport, matrices, camera.x, camera.y, camera.z);
-            } else if (pass == AngelicaRenderPassConfiguration.TRANSLUCENT_PASS) {
+            } else if (pass == (Nvidium.isWithAngelica()?AngelicaRenderPassConfiguration.TRANSLUCENT_PASS: ArchaicRenderPassConfigurationBuilder.TRANSLUCENT_PASS)) {
                 nvidium$renderer.renderTranslucent();
             }
             pass.endDrawing();
@@ -170,14 +172,19 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
     private void nvidium$redirectAnimatedSpriteUpdates(CallbackInfo ci) {
 
         if (Nvidium.IS_ENABLED && Nvidium.config.async_bfs
-            && AngelicaMod.options().performance.animateOnlyVisibleTextures) {
+            && (Nvidium.isWithAngelica()?AngelicaMod.options().performance.animateOnlyVisibleTextures: ModuleConfig.ConservativeAnimatedTextures)) {
             // ci.cancel();
             var sprites = nvidium$renderer.getAnimatedSpriteSet();
             if (sprites == null) {
                 return;
             }
             for (var sprite : sprites) {
-                ((SpriteExtension) sprite).celeritas$markActive();
+                if(Nvidium.isWithAngelica()) {
+                    ((SpriteExtension) sprite).celeritas$markActive();
+                } else {
+                    ((TextureAtlasSpriteExt) sprite).celeritas$markActive();
+                }
+
             }
         }
 
