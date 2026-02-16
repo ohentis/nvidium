@@ -4,16 +4,18 @@ import static me.cortex.nvidium.Nvidium.LOGGER;
 
 import java.nio.IntBuffer;
 
+import com.ventooth.beddium.modules.TerrainRendering.ArchaicRenderPassConfigurationBuilder;
+import me.cortex.nvidium.mojangCompat.ChunkSectionPos;
 import org.embeddedt.embeddium.impl.common.util.NativeBuffer;
 import org.embeddedt.embeddium.impl.model.quad.properties.ModelQuadFacing;
 import org.embeddedt.embeddium.impl.render.chunk.RenderSection;
 import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildOutput;
 import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkSortOutput;
+import org.embeddedt.embeddium.impl.render.chunk.data.BuiltSectionMeshParts;
 import org.joml.Vector3i;
 import org.joml.Vector4i;
 import org.lwjgl.system.MemoryUtil;
 
-import com.gtnewhorizons.angelica.compat.mojang.ChunkSectionPos;
 import com.gtnewhorizons.angelica.rendering.celeritas.AngelicaRenderPassConfiguration;
 import com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer;
 
@@ -169,7 +171,12 @@ public class SectionManager {
         }
 
         // We need to store quadCount per ModelFacing to pad translucency sorting data
-        var translucentData = result.meshes.get(AngelicaRenderPassConfiguration.TRANSLUCENT_PASS);
+        BuiltSectionMeshParts translucentData = null;
+        if(Nvidium.isWithAngelica()) {
+            translucentData = result.meshes.get(AngelicaRenderPassConfiguration.TRANSLUCENT_PASS);
+        } else if(Nvidium.isWithBeddium()){
+            translucentData = result.meshes.get(ArchaicRenderPassConfigurationBuilder.TRANSLUCENT_PASS);
+        }
         if (translucentData != null) {
             int[] quadOffsets = translucencyQuadCounts.get(sectionKey);
             if (quadOffsets == null) {
@@ -206,7 +213,7 @@ public class SectionManager {
                         + " physically used: "
                         + this.terrainAreana.getMemoryUsed()
                         + " limit: "
-                        + ((INvidiumWorldRendererGetter) (CeleritasWorldRenderer.getInstance())).nvidium$getRenderer()
+                        + ((INvidiumWorldRendererGetter) (Nvidium.isWithAngelica()?CeleritasWorldRenderer.getInstance():com.ventooth.beddium.modules.TerrainRendering.CeleritasWorldRenderer.instance())).nvidium$getRenderer()
                             .getMaxGeometryMemory());
 
                 deleteSection(sectionKey);
