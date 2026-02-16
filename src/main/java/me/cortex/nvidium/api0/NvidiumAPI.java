@@ -1,5 +1,7 @@
 package me.cortex.nvidium.api0;
 
+import me.cortex.nvidium.NvidiumWorldRenderer;
+import org.embeddedt.embeddium.impl.render.terrain.SimpleWorldRenderer;
 import org.joml.Matrix4fc;
 
 import com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer;
@@ -7,13 +9,26 @@ import com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer;
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.sodiumCompat.INvidiumWorldRendererGetter;
 
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+
 public class NvidiumAPI {
 
     private final String modName;
+    private List<NvidiumWorldRenderer> renderers;
 
     public NvidiumAPI(String modName) {
         this.modName = modName;
+        List<NvidiumWorldRenderer> renderers = new LinkedList<NvidiumWorldRenderer>();
+        if (Nvidium.isWithAngelica()) {
+            renderers.add(((INvidiumWorldRendererGetter) CeleritasWorldRenderer.getInstance()).nvidium$getRenderer());
+        }
+        if (Nvidium.isWithAngelica()) {
+            renderers.add(((INvidiumWorldRendererGetter) com.ventooth.beddium.modules.TerrainRendering.CeleritasWorldRenderer.instance()).nvidium$getRenderer());
+        }
     }
+
 
     /***
      * Forces a render section to not render, guarantees the section will stay hidden until it is marked as visible
@@ -24,10 +39,11 @@ public class NvidiumAPI {
      */
     public void hideSection(int x, int y, int z) {
         if (Nvidium.IS_ENABLED) {
-            var renderer = ((INvidiumWorldRendererGetter) CeleritasWorldRenderer.getInstance()).nvidium$getRenderer();
-            if (renderer != null) {
-                renderer.getSectionManager()
-                    .setHideBit(x, y, z, true);
+            for(NvidiumWorldRenderer renderer: renderers) {
+                if(renderer != null) {
+                    renderer.getSectionManager()
+                        .setHideBit(x, y, z, true);
+                }
             }
         }
     }
@@ -41,10 +57,11 @@ public class NvidiumAPI {
      */
     public void showSection(int x, int y, int z) {
         if (Nvidium.IS_ENABLED) {
-            var renderer = ((INvidiumWorldRendererGetter) CeleritasWorldRenderer.getInstance()).nvidium$getRenderer();
-            if (renderer != null) {
-                renderer.getSectionManager()
-                    .setHideBit(x, y, z, false);
+            for(NvidiumWorldRenderer renderer: renderers) {
+                if (renderer != null) {
+                    renderer.getSectionManager()
+                        .setHideBit(x, y, z, false);
+                }
             }
         }
     }
@@ -59,11 +76,12 @@ public class NvidiumAPI {
      */
     public void setRegionTransformId(int id, int x, int y, int z) {
         if (Nvidium.IS_ENABLED) {
-            var renderer = ((INvidiumWorldRendererGetter) CeleritasWorldRenderer.getInstance()).nvidium$getRenderer();
-            if (renderer != null) {
-                renderer.getSectionManager()
-                    .getRegionManager()
-                    .setRegionTransformId(x, y, z, id);
+            for(NvidiumWorldRenderer renderer : renderers) {
+                if (renderer != null) {
+                    renderer.getSectionManager()
+                        .getRegionManager()
+                        .setRegionTransformId(x, y, z, id);
+                }
             }
         }
     }
@@ -76,9 +94,10 @@ public class NvidiumAPI {
      */
     public void setTransformation(int id, Matrix4fc transform) {
         if (Nvidium.IS_ENABLED) {
-            var renderer = ((INvidiumWorldRendererGetter) CeleritasWorldRenderer.getInstance()).nvidium$getRenderer();
-            if (renderer != null) {
-                renderer.setTransformation(id, transform);
+            for(NvidiumWorldRenderer renderer : renderers) {
+                if (renderer != null) {
+                    renderer.setTransformation(id, transform);
+                }
             }
         }
     }
@@ -93,9 +112,10 @@ public class NvidiumAPI {
      */
     public void setOrigin(int id, int x, int y, int z) {
         if (Nvidium.IS_ENABLED) {
-            var renderer = ((INvidiumWorldRendererGetter) CeleritasWorldRenderer.getInstance()).nvidium$getRenderer();
-            if (renderer != null) {
-                renderer.setOrigin(id, x, y, z);
+            for(NvidiumWorldRenderer renderer : renderers) {
+                if (renderer != null) {
+                    renderer.setOrigin(id, x, y, z);
+                }
             }
         }
     }

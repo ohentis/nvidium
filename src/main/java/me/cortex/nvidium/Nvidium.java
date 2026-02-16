@@ -29,8 +29,7 @@ public class Nvidium {
         .equals("TRUE");
     public static boolean SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER = true;
     public static boolean FORCE_DISABLE = false;
-    public static boolean WITH_ANGELICA = false;
-    public static boolean WITH_BEDDIUM = false;
+
 
     public static NvidiumConfig config = new NvidiumConfig();
 
@@ -69,8 +68,6 @@ public class Nvidium {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        WITH_ANGELICA = Loader.isModLoaded("angelica");
-        WITH_BEDDIUM = Loader.isModLoaded("beddium");
         if (event.getSide()
             .isClient()) {
             checkSystemIsCapable();
@@ -86,5 +83,13 @@ public class Nvidium {
             AngelicaMod.options().performance.translucencySorting = (config.translucency_sorting_level
                 == TranslucencySortingLevel.SODIUM);
         }
+    }
+
+    public static boolean isWithAngelica() {
+        return Loader.isModLoaded("angelica");
+    }
+
+    public static boolean isWithBeddium() {
+        return Loader.isModLoaded("beddium");
     }
 }
