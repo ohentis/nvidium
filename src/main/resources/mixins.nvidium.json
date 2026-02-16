@@ -4,7 +4,6 @@
   "compatibilityLevel": "JAVA_8",
   "client": [
     "minecraft.MixinEntityRenderer",
-    "minecraft.MixinMinecraft",
     "celeritas.MixinChunkBuilder",
     "angelica.MixinChunkBuilderMeshingTask",
     "celeritas.MixinChunkBuildOutput",

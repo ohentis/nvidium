@@ -52,4 +52,5 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:lwjgl3ify:2.1.18:dev")
     compileOnly("org.embeddedt.celeritas:celeritas-common:2.5.2-GTNH") { transitive = false }
     compileOnly("org.embeddedt.celeritas:celeritas-lwjgl2-service:2.5.2-GTNH") { transitive = false }
+    compileOnly("maven.modrinth:beddium:1.2.1-j21")
 }
