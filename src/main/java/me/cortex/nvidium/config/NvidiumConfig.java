@@ -18,6 +18,7 @@ import net.minecraftforge.common.config.Configuration;
 public class NvidiumConfig {
 
     // The options
+    public boolean is_compatible = true;
     public boolean enable_temporal_coherence = true;
     public int max_geometry_memory = 2048;
     public boolean automatic_memory = true;
@@ -44,6 +45,7 @@ public class NvidiumConfig {
     }
 
     public void load() {
+        Nvidium.FORCE_DISABLE = config.getBoolean("force_disable", Configuration.CATEGORY_GENERAL, Nvidium.FORCE_DISABLE, "Used to disable nvidium");
             enable_temporal_coherence = config.getBoolean("enable_temporal_coherence", Configuration.CATEGORY_GENERAL, enable_temporal_coherence, I18n.format("nvidium.options.enable_temporal_coherence.tooltip"));
             max_geometry_memory = config.getInt("max_geometry_memory", Configuration.CATEGORY_GENERAL, max_geometry_memory, 0, Integer.MAX_VALUE, I18n.format("nvidium.options.mb"));
             automatic_memory = config.getBoolean("automatic_memory", Configuration.CATEGORY_GENERAL, automatic_memory, I18n.format("nvidium.options.automatic_memory_limit.tooltip"));
@@ -63,6 +65,7 @@ public class NvidiumConfig {
 
 
     public void save() {
+        config.getCategory(Configuration.CATEGORY_GENERAL).get("force_disable").set(Nvidium.FORCE_DISABLE);
         config.getCategory(Configuration.CATEGORY_GENERAL).get("enable_temporal_coherence").set(enable_temporal_coherence);
         config.getCategory(Configuration.CATEGORY_GENERAL).get("max_geometry_memory").set(max_geometry_memory);
         config.getCategory(Configuration.CATEGORY_GENERAL).get("automatic_memory").set(automatic_memory);

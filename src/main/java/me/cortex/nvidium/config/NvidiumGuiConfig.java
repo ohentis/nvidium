@@ -2,6 +2,7 @@ package me.cortex.nvidium.config;
 import cpw.mods.fml.client.config.GuiConfig;
 import cpw.mods.fml.client.config.IConfigElement;
 import me.cortex.nvidium.Nvidium;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
@@ -19,6 +20,10 @@ public class NvidiumGuiConfig extends GuiConfig{
     @Override
     public void onGuiClosed() {
         super.onGuiClosed();
-        Nvidium.config.load();
+        if(Nvidium.config.config.hasChanged()) {
+            Nvidium.config.load();
+            Minecraft.getMinecraft().renderGlobal.loadRenderers();
+        }
+
     }
 }
