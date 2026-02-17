@@ -2,10 +2,13 @@ package me.cortex.nvidium.sodiumCompat;
 
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_2D;
 
+import com.ventooth.beddium.modules.TerrainRendering.vertex.CompatibleChunkVertex;
+import me.cortex.nvidium.mixin.angelica.CeleritasWorldRendererAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import org.embeddedt.embeddium.impl.render.chunk.terrain.TerrainRenderPass;
+import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkVertexType;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
@@ -185,6 +188,16 @@ public class BeddiumAngelicaCompat {
             GLStateManager.tryBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
         } else if (Nvidium.isWithBeddium()) {
             GL30.glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
+        }
+    }
+
+    public static ChunkVertexType getChunkVertexType() {
+        if (Nvidium.isWithAngelica()) {
+            return ((CeleritasWorldRendererAccessor)com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer.getInstance()).nvidium$chooseVertexType();
+        } else if (Nvidium.isWithBeddium()) {
+            return CompatibleChunkVertex.get();
+        } else {
+            return null;
         }
     }
 

@@ -26,7 +26,8 @@ public enum Mixins implements IMixins {
             "angelica.MixinCeleritasWorldRenderer",
             "angelica.MixinChunkBuilderMeshingTask",
             "angelica.MixinOptionFlag",
-            "angelica.MixinSodiumOptionsGUI")
+            "angelica.MixinSodiumOptionsGUI",
+            "angelica.CeleritasWorldRendererAccessor")
         .setPhase(Phase.EARLY)
         .addRequiredMod(TargetedMod.ANGELICA)),
 
