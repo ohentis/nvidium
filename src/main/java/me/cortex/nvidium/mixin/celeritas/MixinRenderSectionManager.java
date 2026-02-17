@@ -6,9 +6,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.ventooth.beddium.config.ModuleConfig;
-import com.ventooth.beddium.modules.ConservativeAnimatedTextures.ext.TextureAtlasSpriteExt;
-import com.ventooth.beddium.modules.TerrainRendering.ArchaicRenderPassConfigurationBuilder;
 import org.embeddedt.embeddium.impl.render.chunk.ChunkRenderMatrices;
 import org.embeddedt.embeddium.impl.render.chunk.ChunkUpdateType;
 import org.embeddedt.embeddium.impl.render.chunk.RenderSection;
@@ -33,14 +30,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import com.gtnewhorizons.angelica.AngelicaMod;
-import com.gtnewhorizons.angelica.rendering.celeritas.AngelicaRenderPassConfiguration;
-import com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer;
-import com.gtnewhorizons.angelica.rendering.celeritas.SpriteExtension;
-
 import it.unimi.dsi.fastutil.longs.Long2ReferenceMap;
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.NvidiumWorldRenderer;
+import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.sodiumCompat.INvidiumWorldRendererGetter;
 import me.cortex.nvidium.sodiumCompat.INvidiumWorldRendererSetter;
 import me.cortex.nvidium.sodiumCompat.IRenderSectionExtension;
@@ -88,7 +81,7 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
     private void nvidium$deleteSection(RenderSection section) {
         if (Nvidium.IS_ENABLED) {
             if (Nvidium.config.region_keep_distance == 32
-                || Nvidium.config.region_keep_distance <= (Nvidium.isWithAngelica()?CeleritasWorldRenderer.getInstance().getEffectiveRenderDistance(): com.ventooth.beddium.modules.TerrainRendering.CeleritasWorldRenderer.getEffectiveRenderDistance())) {
+                || Nvidium.config.region_keep_distance <= (BeddiumAngelicaCompat.getEffectiveRenderDistance())) {
                 nvidium$renderer.deleteSection(section);
             }
         }
@@ -106,9 +99,9 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
         if (Nvidium.IS_ENABLED) {
             ci.cancel();
             pass.startDrawing();
-            if (pass == (Nvidium.isWithAngelica()?AngelicaRenderPassConfiguration.SOLID_PASS: ArchaicRenderPassConfigurationBuilder.SOLID_PASS)) {
+            if (pass == BeddiumAngelicaCompat.getSolidPass()) {
                 nvidium$renderer.renderFrame(nvidium$viewport, matrices, camera.x, camera.y, camera.z);
-            } else if (pass == (Nvidium.isWithAngelica()?AngelicaRenderPassConfiguration.TRANSLUCENT_PASS: ArchaicRenderPassConfigurationBuilder.TRANSLUCENT_PASS)) {
+            } else if (pass == BeddiumAngelicaCompat.getTranslucentPass()) {
                 nvidium$renderer.renderTranslucent();
             }
             pass.endDrawing();
@@ -171,20 +164,14 @@ public abstract class MixinRenderSectionManager implements INvidiumWorldRenderer
     @Inject(method = "tickVisibleRenders", at = @At("HEAD"), cancellable = true)
     private void nvidium$redirectAnimatedSpriteUpdates(CallbackInfo ci) {
 
-        if (Nvidium.IS_ENABLED && Nvidium.config.async_bfs
-            && (Nvidium.isWithAngelica()?AngelicaMod.options().performance.animateOnlyVisibleTextures: ModuleConfig.ConservativeAnimatedTextures)) {
+        if (Nvidium.IS_ENABLED && Nvidium.config.async_bfs && (BeddiumAngelicaCompat.getAnimateOnlyVisibleTextures())) {
             // ci.cancel();
             var sprites = nvidium$renderer.getAnimatedSpriteSet();
             if (sprites == null) {
                 return;
             }
             for (var sprite : sprites) {
-                if(Nvidium.isWithAngelica()) {
-                    ((SpriteExtension) sprite).celeritas$markActive();
-                } else {
-                    ((TextureAtlasSpriteExt) sprite).celeritas$markActive();
-                }
-
+                BeddiumAngelicaCompat.markSpriteActive(sprite);
             }
         }
 

@@ -4,8 +4,6 @@ import static me.cortex.nvidium.Nvidium.LOGGER;
 
 import java.nio.IntBuffer;
 
-import com.ventooth.beddium.modules.TerrainRendering.ArchaicRenderPassConfigurationBuilder;
-import me.cortex.nvidium.mojangCompat.ChunkSectionPos;
 import org.embeddedt.embeddium.impl.common.util.NativeBuffer;
 import org.embeddedt.embeddium.impl.model.quad.properties.ModelQuadFacing;
 import org.embeddedt.embeddium.impl.render.chunk.RenderSection;
@@ -16,9 +14,6 @@ import org.joml.Vector3i;
 import org.joml.Vector4i;
 import org.lwjgl.system.MemoryUtil;
 
-import com.gtnewhorizons.angelica.rendering.celeritas.AngelicaRenderPassConfiguration;
-import com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer;
-
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -26,7 +21,8 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.NvidiumWorldRenderer;
 import me.cortex.nvidium.gl.RenderDevice;
-import me.cortex.nvidium.sodiumCompat.INvidiumWorldRendererGetter;
+import me.cortex.nvidium.mojangCompat.ChunkSectionPos;
+import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.sodiumCompat.IRepackagedResult;
 import me.cortex.nvidium.util.BufferArena;
 import me.cortex.nvidium.util.SegmentedManager;
@@ -171,12 +167,7 @@ public class SectionManager {
         }
 
         // We need to store quadCount per ModelFacing to pad translucency sorting data
-        BuiltSectionMeshParts translucentData = null;
-        if(Nvidium.isWithAngelica()) {
-            translucentData = result.meshes.get(AngelicaRenderPassConfiguration.TRANSLUCENT_PASS);
-        } else if(Nvidium.isWithBeddium()){
-            translucentData = result.meshes.get(ArchaicRenderPassConfigurationBuilder.TRANSLUCENT_PASS);
-        }
+        BuiltSectionMeshParts translucentData = result.meshes.get(BeddiumAngelicaCompat.getTranslucentPass());
         if (translucentData != null) {
             int[] quadOffsets = translucencyQuadCounts.get(sectionKey);
             if (quadOffsets == null) {
@@ -213,7 +204,7 @@ public class SectionManager {
                         + " physically used: "
                         + this.terrainAreana.getMemoryUsed()
                         + " limit: "
-                        + ((INvidiumWorldRendererGetter) (Nvidium.isWithAngelica()?CeleritasWorldRenderer.getInstance():com.ventooth.beddium.modules.TerrainRendering.CeleritasWorldRenderer.instance())).nvidium$getRenderer()
+                        + BeddiumAngelicaCompat.getWorldRenderer()
                             .getMaxGeometryMemory());
 
                 deleteSection(sectionKey);

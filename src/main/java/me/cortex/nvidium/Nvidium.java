@@ -1,25 +1,28 @@
 package me.cortex.nvidium;
 
-import cpw.mods.fml.client.config.GuiConfigEntries;
-import cpw.mods.fml.common.Loader;
 import net.minecraft.util.Util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL;
 
-import com.gtnewhorizons.angelica.AngelicaMod;
-
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import me.cortex.nvidium.config.NvidiumConfig;
 import me.cortex.nvidium.config.TranslucencySortingLevel;
+import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.sodiumCompat.IrisCheck;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
 @Lwjgl3Aware
-@Mod(modid = Nvidium.MODID, version = Tags.VERSION, name = "Nvidium", acceptedMinecraftVersions = "[1.7.10]", guiFactory = "me.cortex.nvidium.config.NvidiumGuiFactory")
+@Mod(
+    modid = Nvidium.MODID,
+    version = Tags.VERSION,
+    name = "Nvidium",
+    acceptedMinecraftVersions = "[1.7.10]",
+    guiFactory = "me.cortex.nvidium.config.NvidiumGuiFactory")
 public class Nvidium {
 
     public static final String MODID = "nvidium";
@@ -30,7 +33,6 @@ public class Nvidium {
         .equals("TRUE");
     public static boolean SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER = true;
     public static boolean FORCE_DISABLE = false;
-
 
     public static NvidiumConfig config = new NvidiumConfig();
 
@@ -81,23 +83,24 @@ public class Nvidium {
         // Disable sodium translucency sorting since nvidium is doing it
         if (Nvidium.IS_ENABLED) {
             LOGGER.info("Ensuring translucency sorting is enabled");
-            AngelicaMod.options().performance.translucencySorting = (config.translucency_sorting_level
-                == TranslucencySortingLevel.SODIUM);
+            BeddiumAngelicaCompat
+                .setTranslucencySorting(config.translucency_sorting_level == TranslucencySortingLevel.SODIUM);
         }
     }
 
     private static Boolean WITH_ANGELICA;
 
     public static boolean isWithAngelica() {
-        if(WITH_ANGELICA == null) {
+        if (WITH_ANGELICA == null) {
             WITH_ANGELICA = Loader.isModLoaded("angelica");
         }
         return WITH_ANGELICA;
     }
 
     private static Boolean WITH_BEDDIUM;
+
     public static boolean isWithBeddium() {
-        if(WITH_BEDDIUM == null) {
+        if (WITH_BEDDIUM == null) {
             WITH_BEDDIUM = Loader.isModLoaded("beddium");
         }
         return WITH_BEDDIUM;

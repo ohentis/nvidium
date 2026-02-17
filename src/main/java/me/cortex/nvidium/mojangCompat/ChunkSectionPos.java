@@ -1,7 +1,9 @@
 package me.cortex.nvidium.mojangCompat;
-//stolen from angelica
-import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
+
+// stolen from angelica
 import org.joml.Vector3i;
+
+import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
 
 // See if we can merge/mixin/extend ChunkPosition maybe?
 public class ChunkSectionPos extends Vector3i {
@@ -9,6 +11,7 @@ public class ChunkSectionPos extends Vector3i {
     public static int getSectionCoord(int coord) {
         return coord >> 4;
     }
+
     public static int getBlockCoord(int sectionCoord) {
         return sectionCoord << 4;
     }
@@ -16,19 +19,23 @@ public class ChunkSectionPos extends Vector3i {
     private ChunkSectionPos(int x, int y, int z) {
         super(x, y, z);
     }
+
     public static ChunkSectionPos from(int x, int y, int z) {
         return new ChunkSectionPos(x, y, z);
     }
 
     public static ChunkSectionPos from(BlockPos pos) {
-        return new ChunkSectionPos(getSectionCoord(pos.getX()), getSectionCoord(pos.getY()), getSectionCoord(pos.getZ()));
+        return new ChunkSectionPos(
+            getSectionCoord(pos.getX()),
+            getSectionCoord(pos.getY()),
+            getSectionCoord(pos.getZ()));
     }
 
     public static long asLong(int x, int y, int z) {
         long l = 0L;
-        l |= ((long)x & 4194303L) << 42;
-        l |= ((long)y & 1048575L) << 0;
-        l |= ((long)z & 4194303L) << 20;
+        l |= ((long) x & 4194303L) << 42;
+        l |= ((long) y & 1048575L) << 0;
+        l |= ((long) z & 4194303L) << 20;
         return l;
     }
 
@@ -40,7 +47,7 @@ public class ChunkSectionPos extends Vector3i {
         final int i = getLocalCoord(x);
         final int j = getLocalCoord(y);
         final int k = getLocalCoord(z);
-        return (short)(i << 8 | k << 4 | j << 0);
+        return (short) (i << 8 | k << 4 | j << 0);
     }
 
     public long asLong() {

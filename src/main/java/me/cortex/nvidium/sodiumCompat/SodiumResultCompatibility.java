@@ -8,13 +8,9 @@ import org.embeddedt.embeddium.impl.render.chunk.vertex.format.impl.CompactChunk
 import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
 
-import com.gtnewhorizons.angelica.compat.mojang.Camera;
-import com.gtnewhorizons.angelica.rendering.celeritas.AngelicaRenderPassConfiguration;
-
 import it.unimi.dsi.fastutil.longs.LongArrays;
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.config.TranslucencySortingLevel;
-import me.cortex.nvidium.mixin.angelica.CameraAccessor;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
 @Lwjgl3Aware
@@ -83,7 +79,7 @@ public class SodiumResultCompatibility {
 
         long outPtr = MemoryUtil.memAddress(output.getDirectBuffer());
         // NOTE: mutates the input translucent geometry
-        var cameraPos = ((CameraAccessor) Camera.INSTANCE).nvidium$getPos();
+        var cameraPos = BeddiumAngelicaCompat.getCameraPosition();
 
         float cpx = (float) (cameraPos.x - (result.render.getChunkX() << 4));
         float cpy = (float) (cameraPos.y - (result.render.getChunkY() << 4));
@@ -104,7 +100,7 @@ public class SodiumResultCompatibility {
         }
 
         // Do translucent first
-        var translucentData = result.meshes.get(AngelicaRenderPassConfiguration.TRANSLUCENT_PASS);
+        var translucentData = result.meshes.get(BeddiumAngelicaCompat.getTranslucentPass());
 
         // If we are using sodium translucency sorting, we don't need to sort quads
         if (translucentData != null && Nvidium.config.translucency_sorting_level == TranslucencySortingLevel.SODIUM) {
@@ -216,8 +212,8 @@ public class SodiumResultCompatibility {
 
         outOffsets[7] = (short) offset;
 
-        var solid = result.meshes.get(AngelicaRenderPassConfiguration.SOLID_PASS);
-        var cutout = result.meshes.get(AngelicaRenderPassConfiguration.CUTOUT_MIPPED_PASS);
+        var solid = result.meshes.get(BeddiumAngelicaCompat.getSolidPass());
+        var cutout = result.meshes.get(BeddiumAngelicaCompat.getCutoutPass());
 
         // Do all but translucent
         long solidPartOffset = 0;

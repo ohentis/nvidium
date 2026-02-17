@@ -1,9 +1,10 @@
 package me.cortex.nvidium.config;
 
-import cpw.mods.fml.client.IModGuiFactory;
+import java.util.Set;
+
 import net.minecraft.client.Minecraft;
 
-import java.util.Set;
+import cpw.mods.fml.client.IModGuiFactory;
 
 public class NvidiumGuiFactory implements IModGuiFactory {
 

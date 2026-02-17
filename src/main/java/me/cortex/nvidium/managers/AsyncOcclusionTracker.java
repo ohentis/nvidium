@@ -10,8 +10,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.ventooth.beddium.config.ModuleConfig;
-import me.cortex.nvidium.Nvidium;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.World;
 
@@ -26,10 +24,8 @@ import org.embeddedt.embeddium.impl.render.terrain.SimpleWorldRenderer;
 import org.embeddedt.embeddium.impl.render.viewport.Viewport;
 import org.jetbrains.annotations.Nullable;
 
-import com.gtnewhorizons.angelica.AngelicaMod;
-
-import me.cortex.nvidium.RenderPipeline;
 import me.cortex.nvidium.mixin.celeritas.RenderListManagerAccessor;
+import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.sodiumCompat.IRenderSectionExtension;
 
 public class AsyncOcclusionTracker {
@@ -78,14 +74,7 @@ public class AsyncOcclusionTracker {
             framesAhead.acquireUninterruptibly();
             if (!running) break;
             long startTime = System.currentTimeMillis();
-            final boolean animateVisibleSpritesOnly;
-            if(Nvidium.isWithAngelica()){
-                animateVisibleSpritesOnly = AngelicaMod.options().performance.animateOnlyVisibleTextures;
-            } else if (Nvidium.isWithBeddium()) {
-                animateVisibleSpritesOnly = ModuleConfig.ConservativeAnimatedTextures;
-            } else {
-                animateVisibleSpritesOnly = false;
-            }
+            final boolean animateVisibleSpritesOnly = BeddiumAngelicaCompat.getAnimateOnlyVisibleTextures();
             // The reason for batching is so that ordering is strongly defined
             List<RenderSection> chunkUpdates = new ArrayList<>();
             List<RenderSection> blockEntitySections = new ArrayList<>();
@@ -214,7 +203,7 @@ public class AsyncOcclusionTracker {
 
     private float getSearchDistance2() {
         float distance;
-        if (AngelicaMod.options().performance.useFogOcclusion) {
+        if (BeddiumAngelicaCompat.getUseFogOcclusion()) {
             distance = this.getEffectiveRenderDistance();
         } else {
             distance = this.getRenderDistance();
@@ -230,7 +219,7 @@ public class AsyncOcclusionTracker {
             .isOpaqueCube()) {
             useOcclusionCulling = false;
         } else {
-            useOcclusionCulling = AngelicaMod.options().performance.useOcclusionCulling;
+            useOcclusionCulling = BeddiumAngelicaCompat.getUseOcclusionCulling();
         }
 
         return useOcclusionCulling;
@@ -238,8 +227,8 @@ public class AsyncOcclusionTracker {
 
     private float getEffectiveRenderDistance() {
 
-        float[] color = RenderPipeline.renderSystem.getShaderFogColor();
-        float distance = RenderPipeline.renderSystem.getShaderFogEnd();
+        float[] color = new float[] { 0.0F, 0.0F, 0.0F, 1.0F };
+        float distance = 0;
         float renderDistance = this.getRenderDistance();
         return !(color[3] == 1.0F) ? renderDistance : Math.min(renderDistance, distance + 0.5F);
     }

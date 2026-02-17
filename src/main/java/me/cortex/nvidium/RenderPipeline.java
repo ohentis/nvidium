@@ -42,10 +42,6 @@ import org.joml.Vector4i;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.system.MemoryUtil;
 
-import com.gtnewhorizons.angelica.AngelicaMod;
-import com.gtnewhorizons.angelica.glsm.AngelicaRenderSystemService;
-import com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer;
-
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -64,6 +60,7 @@ import me.cortex.nvidium.renderers.SectionRasterizer;
 import me.cortex.nvidium.renderers.SortRegionSectionPhase;
 import me.cortex.nvidium.renderers.TemporalTerrainRasterizer;
 import me.cortex.nvidium.renderers.TranslucentTerrainRasterizer;
+import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.util.DownloadTaskStream;
 import me.cortex.nvidium.util.FrameTimeProfiler;
 import me.cortex.nvidium.util.TickableManager;
@@ -128,7 +125,6 @@ public class RenderPipeline {
     private final IDeviceMappedBuffer statisticsBuffer;
     private final IDeviceMappedBuffer transformationArray;
     private final IDeviceMappedBuffer originOffsetArray;
-    public static AngelicaRenderSystemService renderSystem = new AngelicaRenderSystemService();
 
     private final BitSet regionVisibilityTracker;
 
@@ -288,8 +284,7 @@ public class RenderPipeline {
             for (int i = 0; i < rm.maxRegionIndex(); i++) {
                 if (!rm.regionExists(i)) continue;
                 if ((Nvidium.config.region_keep_distance != 257 && Nvidium.config.region_keep_distance != 32
-                    && Nvidium.config.region_keep_distance > CeleritasWorldRenderer.getInstance()
-                        .getEffectiveRenderDistance())
+                    && Nvidium.config.region_keep_distance > BeddiumAngelicaCompat.getEffectiveRenderDistance())
                     && !rm
                         .withinSquare(Nvidium.config.region_keep_distance + 4, i, chunkPos.x, chunkPos.y, chunkPos.z)) {
                     removeRegion(i);
@@ -364,7 +359,7 @@ public class RenderPipeline {
             addr += 16;
             new Vector4f(new Vector3f(delta), 0).getToAddress(addr);// Subchunk offset (note, delta is already negated)
             addr += 16;
-            new Vector4f(renderSystem.getShaderFogColor()).getToAddress(addr);
+            new Vector4f(0, 0, 0, 1).getToAddress(addr); // Fog color
             addr += 16;
             MemoryUtil.memPutLong(addr, sceneUniform.getDeviceAddress() + SCENE_SIZE);// Put in the location of the
                                                                                       // region indexs
@@ -409,14 +404,14 @@ public class RenderPipeline {
             addr += 4;
             MemoryUtil.memPutFloat(addr, subTexelHeight);
             addr += 4;
-            MemoryUtil.memPutFloat(addr, renderSystem.getShaderFogStart());// FogStart
+            MemoryUtil.memPutFloat(addr, 0);// FogStart
             addr += 4;
-            MemoryUtil.memPutFloat(addr, renderSystem.getShaderFogEnd());// FogEnd
+            MemoryUtil.memPutFloat(addr, 0);// FogEnd
             addr += 4;
-            MemoryUtil.memPutInt(addr, renderSystem.getFogShape());// IsSphericalFog
+            MemoryUtil.memPutInt(addr, 0);// IsSphericalFog
             addr += 4;
             int flags = 0;
-            flags |= AngelicaMod.options().performance.useBlockFaceCulling ? 1 : 0;
+            flags |= BeddiumAngelicaCompat.getUseBlockFaceCulling() ? 1 : 0;
             MemoryUtil.memPutInt(addr, flags);// Flags
             addr += 4;
             MemoryUtil.memPutShort(addr, (short) visibleRegions);
@@ -579,12 +574,12 @@ public class RenderPipeline {
         // Translucency sorting
         {
             glEnable(GL_DEPTH_TEST);
-            renderSystem.enableBlend();
-            renderSystem.blendFuncSeparate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE, ONE_MINUS_SRC_ALPHA);
+            BeddiumAngelicaCompat.enableBlend();
+            BeddiumAngelicaCompat.blendFuncSeperate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE, ONE_MINUS_SRC_ALPHA);
             translucencyTerrainRasterizer
                 .raster(prevRegionCount, translucencyCommandBuffer.getDeviceAddress(), transluscentFrameTimeProfiler);
-            renderSystem.disableBlend();
-            renderSystem.defaultBlendFunc();
+            BeddiumAngelicaCompat.disableBlend();
+            BeddiumAngelicaCompat.blendFuncSeperate(770, 771, 1, 0);
             // glDisable(GL_DEPTH_TEST);
         }
 

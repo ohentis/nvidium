@@ -6,24 +6,24 @@ import org.spongepowered.asm.lib.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import me.cortex.nvidium.Nvidium;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EntityRenderer.class)
 public class MixinEntityRenderer {
+
     @Shadow
     private float farPlaneDistance;
 
-    @ModifyConstant(method = "setupFog", constant = @Constant(floatValue = 192.0F))
-    private float changeFog(float fog) {
+    @Redirect(method = "setupFog", at = @At(value = "INVOKE", target = "Ljava/lang/Math;min(FF)F"))
+    private float changeFog(float a, float b) {
         if (Nvidium.IS_ENABLED) {
-            return 9999999f;
+            return a;
         } else {
-            return fog;
+            return Math.min(a, b);
         }
     }
 
@@ -33,11 +33,9 @@ public class MixinEntityRenderer {
             value = "FIELD",
             target = "Lnet/minecraft/client/renderer/EntityRenderer;farPlaneDistance:F",
             opcode = Opcodes.PUTFIELD,
-            shift = At.Shift.AFTER
-        )
-    )
-    private void changeFarPlaneDistance(float p_78479_1_, int p_78479_2_, CallbackInfo ci){
-        if(Nvidium.IS_ENABLED) {
+            shift = At.Shift.AFTER))
+    private void changeFarPlaneDistance(float p_78479_1_, int p_78479_2_, CallbackInfo ci) {
+        if (Nvidium.IS_ENABLED) {
             farPlaneDistance = 16 * 512f;
         }
     }

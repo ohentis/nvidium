@@ -1,6 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8.3-GTNH",
+  "package": "me.cortex.nvidium.mixin",
   "refmap": "mixins.nvidium.refmap.json",
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8"
