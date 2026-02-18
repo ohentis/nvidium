@@ -40,6 +40,7 @@ import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.joml.Vector4i;
 import org.lwjgl.opengl.GL11C;
+import org.lwjgl.opengl.GL30C;
 import org.lwjgl.system.MemoryUtil;
 
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
@@ -255,7 +256,8 @@ public class RenderPipeline {
         Vector3i chunkPos = new Vector3i(blockPos.x >> 4, blockPos.y >> 4, blockPos.z >> 4);
         // /tp @p 0.0 -1.62 0.0 0 0
         // Clear the first gl error, not our fault
-        // glGetError();
+        GL30C.glGetError();
+        int err;
 
         int screenWidth = Minecraft.getMinecraft().displayWidth;
         int screenHeight = Minecraft.getMinecraft().displayHeight;
@@ -439,9 +441,9 @@ public class RenderPipeline {
 
         TickableManager.TickAll();
 
-        // if ((err = glGetError()) != 0) {
-        // throw new IllegalStateException("GLERROR: "+err);
-        // }
+        if ((err = GL30C.glGetError()) != 0) {
+            throw new IllegalStateException("GLERROR: " + err);
+        }
 
         glEnableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);
         glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
@@ -530,9 +532,10 @@ public class RenderPipeline {
         glDepthFunc(GL11C.GL_LEQUAL);
         // glDisable(GL_DEPTH_TEST);
 
-        // if ((err = glGetError()) != 0) {
-        // throw new IllegalStateException("GLERROR: "+err);
-        // }
+        if ((err = GL30C.glGetError()) != 0) {
+            throw new IllegalStateException("GLERROR: " + err);
+        }
+
     }
 
     void enqueueRegionSort(int regionId) {

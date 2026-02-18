@@ -2,8 +2,6 @@ package me.cortex.nvidium.sodiumCompat;
 
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_2D;
 
-import com.ventooth.beddium.modules.TerrainRendering.vertex.CompatibleChunkVertex;
-import me.cortex.nvidium.mixin.angelica.CeleritasWorldRendererAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
@@ -11,7 +9,8 @@ import org.embeddedt.embeddium.impl.render.chunk.terrain.TerrainRenderPass;
 import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkVertexType;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL13C;
+import org.lwjgl.opengl.GL30C;
 
 import com.gtnewhorizons.angelica.AngelicaMod;
 import com.gtnewhorizons.angelica.compat.mojang.Camera;
@@ -22,10 +21,12 @@ import com.ventooth.beddium.config.ModuleConfig;
 import com.ventooth.beddium.modules.ConservativeAnimatedTextures.ext.TextureAtlasSpriteExt;
 import com.ventooth.beddium.modules.TerrainRendering.ArchaicRenderPassConfigurationBuilder;
 import com.ventooth.beddium.modules.TerrainRendering.CameraHelper;
+import com.ventooth.beddium.modules.TerrainRendering.vertex.CompatibleChunkVertex;
 
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.NvidiumWorldRenderer;
 import me.cortex.nvidium.mixin.angelica.CameraAccessor;
+import me.cortex.nvidium.mixin.angelica.CeleritasWorldRendererAccessor;
 import me.cortex.nvidium.mixin.beddium.ArchaicRenderSectionManagerAccessor;
 import me.cortex.nvidium.mixin.minecraft.MinecraftAccessor;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
@@ -128,8 +129,8 @@ public class BeddiumAngelicaCompat {
             GLStateManager.glActiveTexture(GL13.GL_TEXTURE0 + bindingPoint);
             GLStateManager.glBindTexture(GL_TEXTURE_2D, textureId);
         } else if (Nvidium.isWithBeddium()) {
-            GL13.glActiveTexture(GL13.GL_TEXTURE0 + bindingPoint);
-            GL13.glBindTexture(GL_TEXTURE_2D, textureId);
+            GL13C.glActiveTexture(GL13.GL_TEXTURE0 + bindingPoint);
+            GL13C.glBindTexture(GL_TEXTURE_2D, textureId);
         }
     }
 
@@ -171,7 +172,7 @@ public class BeddiumAngelicaCompat {
         if (Nvidium.isWithAngelica()) {
             GLStateManager.enableBlend();
         } else if (Nvidium.isWithBeddium()) {
-            GL13.glEnable(GL13.GL_BLEND);
+            GL13C.glEnable(GL13.GL_BLEND);
         }
     }
 
@@ -179,7 +180,7 @@ public class BeddiumAngelicaCompat {
         if (Nvidium.isWithAngelica()) {
             GLStateManager.disableBlend();
         } else if (Nvidium.isWithBeddium()) {
-            GL13.glDisable(GL13.GL_BLEND);
+            GL13C.glDisable(GL13.GL_BLEND);
         }
     }
 
@@ -187,13 +188,14 @@ public class BeddiumAngelicaCompat {
         if (Nvidium.isWithAngelica()) {
             GLStateManager.tryBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
         } else if (Nvidium.isWithBeddium()) {
-            GL30.glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
+            GL30C.glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
         }
     }
 
     public static ChunkVertexType getChunkVertexType() {
         if (Nvidium.isWithAngelica()) {
-            return ((CeleritasWorldRendererAccessor)com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer.getInstance()).nvidium$chooseVertexType();
+            return ((CeleritasWorldRendererAccessor) com.gtnewhorizons.angelica.rendering.celeritas.CeleritasWorldRenderer
+                .getInstance()).nvidium$chooseVertexType();
         } else if (Nvidium.isWithBeddium()) {
             return CompatibleChunkVertex.get();
         } else {

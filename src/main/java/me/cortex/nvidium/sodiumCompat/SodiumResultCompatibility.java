@@ -3,8 +3,6 @@ package me.cortex.nvidium.sodiumCompat;
 import org.embeddedt.embeddium.impl.common.util.NativeBuffer;
 import org.embeddedt.embeddium.impl.model.quad.properties.ModelQuadFacing;
 import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildOutput;
-import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkMeshFormats;
-import org.embeddedt.embeddium.impl.render.chunk.vertex.format.impl.CompactChunkVertex;
 import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
 
@@ -17,8 +15,9 @@ import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 public class SodiumResultCompatibility {
 
     public static RepackagedSectionOutput repackage(ChunkBuildOutput result) {
-        int formatSize = Nvidium.config.use_sodium_vertex_format ? ChunkMeshFormats.COMPACT.getVertexFormat()
-            .getStride() : NvidiumCompactChunkVertex.STRIDE;
+        int formatSize = BeddiumAngelicaCompat.getChunkVertexType()
+            .getVertexFormat()
+            .getStride();
         int geometryBytes = result.meshes.values()
             .stream()
             .mapToInt(
@@ -65,8 +64,9 @@ public class SodiumResultCompatibility {
 
     private static void copyQuad(long from, long too) {
         // Quads are 64 bytes big using NvidiumCompactChunkVertex otherwise 80 bytes using CompactChunkVertex
-        long quadSize = Nvidium.config.use_sodium_vertex_format ? CompactChunkVertex.STRIDE * 4
-            : NvidiumCompactChunkVertex.STRIDE * 4;
+        long quadSize = BeddiumAngelicaCompat.getChunkVertexType()
+            .getVertexFormat()
+            .getStride() * 4;
         for (long i = 0; i < quadSize; i += 8) {
             MemoryUtil.memPutLong(too + i, MemoryUtil.memGetLong(from + i));
         }
