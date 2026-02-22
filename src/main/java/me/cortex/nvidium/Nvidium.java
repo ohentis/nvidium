@@ -12,7 +12,9 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import me.cortex.nvidium.config.NvidiumConfig;
 import me.cortex.nvidium.config.TranslucencySortingLevel;
-import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
+import me.cortex.nvidium.sodiumCompat.AngelicaCompat;
+import me.cortex.nvidium.sodiumCompat.BeddiumCompat;
+import me.cortex.nvidium.sodiumCompat.ISodiumCalls;
 import me.cortex.nvidium.sodiumCompat.IrisCheck;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
@@ -61,10 +63,17 @@ public class Nvidium {
         IS_ENABLED = IS_COMPATIBLE;
     }
 
+    public static ISodiumCalls Compat;
+
     @Mod.EventHandler
     // preInit "Run before anything else. Read your config, create blocks, items, etc, and register them with the
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
+        if (isWithAngelica()) {
+            Compat = new AngelicaCompat();
+        } else if (isWithBeddium()) {
+            Compat = new BeddiumCompat();
+        }
 
         config.init(event.getSuggestedConfigurationFile());
     }
@@ -82,9 +91,7 @@ public class Nvidium {
 
         // Disable sodium translucency sorting since nvidium is doing it
         if (Nvidium.IS_ENABLED) {
-            LOGGER.info("Ensuring translucency sorting is enabled");
-            BeddiumAngelicaCompat
-                .setTranslucencySorting(config.translucency_sorting_level == TranslucencySortingLevel.SODIUM);
+            Compat.setTranslucencySorting(config.translucency_sorting_level == TranslucencySortingLevel.SODIUM);
         }
     }
 

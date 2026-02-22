@@ -23,7 +23,6 @@ import org.joml.Matrix4fc;
 import me.cortex.nvidium.gl.RenderDevice;
 import me.cortex.nvidium.managers.AsyncOcclusionTracker;
 import me.cortex.nvidium.managers.SectionManager;
-import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.sodiumCompat.NvidiumCompactChunkVertex;
 import me.cortex.nvidium.util.DownloadTaskStream;
 import me.cortex.nvidium.util.UploadingBufferStream;
@@ -49,7 +48,7 @@ public class NvidiumWorldRenderer {
     // Note: the reason that asyncChunkTracker is passed in as an already constructed object is cause of the amount of
     // argmuents it takes to construct it
     public NvidiumWorldRenderer(AsyncOcclusionTracker asyncChunkTracker) {
-        int frames = BeddiumAngelicaCompat.getCpuRenderAheadLimit() + 1;
+        int frames = Nvidium.Compat.getCpuRenderAheadLimit() + 1;
         // 32 mb upload buffer
         this.uploadStream = new UploadingBufferStream(device, 32000000);
         // 8 mb download buffer

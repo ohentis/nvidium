@@ -24,8 +24,8 @@ import org.embeddedt.embeddium.impl.render.terrain.SimpleWorldRenderer;
 import org.embeddedt.embeddium.impl.render.viewport.Viewport;
 import org.jetbrains.annotations.Nullable;
 
+import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.mixin.celeritas.RenderListManagerAccessor;
-import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.sodiumCompat.IRenderSectionExtension;
 
 public class AsyncOcclusionTracker {
@@ -74,7 +74,7 @@ public class AsyncOcclusionTracker {
             framesAhead.acquireUninterruptibly();
             if (!running) break;
             long startTime = System.currentTimeMillis();
-            final boolean animateVisibleSpritesOnly = BeddiumAngelicaCompat.getAnimateOnlyVisibleTextures();
+            final boolean animateVisibleSpritesOnly = Nvidium.Compat.getAnimateOnlyVisibleTextures();
             // The reason for batching is so that ordering is strongly defined
             List<RenderSection> chunkUpdates = new ArrayList<>();
             List<RenderSection> blockEntitySections = new ArrayList<>();
@@ -203,7 +203,7 @@ public class AsyncOcclusionTracker {
 
     private float getSearchDistance2() {
         float distance;
-        if (BeddiumAngelicaCompat.getUseFogOcclusion()) {
+        if (Nvidium.Compat.getUseFogOcclusion()) {
             distance = this.getEffectiveRenderDistance();
         } else {
             distance = this.getRenderDistance();
@@ -219,7 +219,7 @@ public class AsyncOcclusionTracker {
             .isOpaqueCube()) {
             useOcclusionCulling = false;
         } else {
-            useOcclusionCulling = BeddiumAngelicaCompat.getUseOcclusionCulling();
+            useOcclusionCulling = Nvidium.Compat.getUseOcclusionCulling();
         }
 
         return useOcclusionCulling;

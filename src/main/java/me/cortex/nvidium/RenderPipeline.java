@@ -61,7 +61,6 @@ import me.cortex.nvidium.renderers.SectionRasterizer;
 import me.cortex.nvidium.renderers.SortRegionSectionPhase;
 import me.cortex.nvidium.renderers.TemporalTerrainRasterizer;
 import me.cortex.nvidium.renderers.TranslucentTerrainRasterizer;
-import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.util.DownloadTaskStream;
 import me.cortex.nvidium.util.FrameTimeProfiler;
 import me.cortex.nvidium.util.TickableManager;
@@ -286,7 +285,7 @@ public class RenderPipeline {
             for (int i = 0; i < rm.maxRegionIndex(); i++) {
                 if (!rm.regionExists(i)) continue;
                 if ((Nvidium.config.region_keep_distance != 257 && Nvidium.config.region_keep_distance != 32
-                    && Nvidium.config.region_keep_distance > BeddiumAngelicaCompat.getEffectiveRenderDistance())
+                    && Nvidium.config.region_keep_distance > Nvidium.Compat.getEffectiveRenderDistance())
                     && !rm
                         .withinSquare(Nvidium.config.region_keep_distance + 4, i, chunkPos.x, chunkPos.y, chunkPos.z)) {
                     removeRegion(i);
@@ -413,7 +412,7 @@ public class RenderPipeline {
             MemoryUtil.memPutInt(addr, 0);// IsSphericalFog
             addr += 4;
             int flags = 0;
-            flags |= BeddiumAngelicaCompat.getUseBlockFaceCulling() ? 1 : 0;
+            flags |= Nvidium.Compat.getUseBlockFaceCulling() ? 1 : 0;
             MemoryUtil.memPutInt(addr, flags);// Flags
             addr += 4;
             MemoryUtil.memPutShort(addr, (short) visibleRegions);
@@ -577,12 +576,12 @@ public class RenderPipeline {
         // Translucency sorting
         {
             glEnable(GL_DEPTH_TEST);
-            BeddiumAngelicaCompat.enableBlend();
-            BeddiumAngelicaCompat.blendFuncSeperate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE, ONE_MINUS_SRC_ALPHA);
+            Nvidium.Compat.enableBlend();
+            Nvidium.Compat.blendFuncSeperate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE, ONE_MINUS_SRC_ALPHA);
             translucencyTerrainRasterizer
                 .raster(prevRegionCount, translucencyCommandBuffer.getDeviceAddress(), transluscentFrameTimeProfiler);
-            BeddiumAngelicaCompat.disableBlend();
-            BeddiumAngelicaCompat.blendFuncSeperate(770, 771, 1, 0);
+            Nvidium.Compat.disableBlend();
+            Nvidium.Compat.blendFuncSeperate(770, 771, 1, 0);
             // glDisable(GL_DEPTH_TEST);
         }
 

@@ -22,7 +22,6 @@ import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.NvidiumWorldRenderer;
 import me.cortex.nvidium.gl.RenderDevice;
 import me.cortex.nvidium.mojangCompat.ChunkSectionPos;
-import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.sodiumCompat.IRepackagedResult;
 import me.cortex.nvidium.util.BufferArena;
 import me.cortex.nvidium.util.SegmentedManager;
@@ -167,7 +166,7 @@ public class SectionManager {
         }
 
         // We need to store quadCount per ModelFacing to pad translucency sorting data
-        BuiltSectionMeshParts translucentData = result.meshes.get(BeddiumAngelicaCompat.getTranslucentPass());
+        BuiltSectionMeshParts translucentData = result.meshes.get(Nvidium.Compat.getTranslucentPass());
         if (translucentData != null) {
             int[] quadOffsets = translucencyQuadCounts.get(sectionKey);
             if (quadOffsets == null) {
@@ -204,7 +203,7 @@ public class SectionManager {
                         + " physically used: "
                         + this.terrainAreana.getMemoryUsed()
                         + " limit: "
-                        + BeddiumAngelicaCompat.getWorldRenderer()
+                        + Nvidium.Compat.getWorldRenderer()
                             .getMaxGeometryMemory());
 
                 deleteSection(sectionKey);

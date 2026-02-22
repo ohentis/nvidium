@@ -15,9 +15,9 @@ import org.lwjgl.opengl.GL12C;
 import org.lwjgl.opengl.GL45;
 import org.lwjgl.opengl.GL45C;
 
+import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.gl.shader.Shader;
 import me.cortex.nvidium.mixin.minecraft.EntityRendererAccessor;
-import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 import me.cortex.nvidium.sodiumCompat.ShaderLoader;
 import me.cortex.nvidium.util.FrameTimeProfiler;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
@@ -63,8 +63,8 @@ public class TranslucentTerrainRasterizer extends Phase {
 
         GL45C.glBindSampler(0, blockSampler);
         GL45C.glBindSampler(1, lightSampler);
-        BeddiumAngelicaCompat.setTexture(blockId, 0);
-        BeddiumAngelicaCompat.setTexture(lightId, 1);
+        Nvidium.Compat.setTexture(blockId, 0);
+        Nvidium.Compat.setTexture(lightId, 1);
 
         // the +8*6 is to offset to the unassigned dispatch
         glBufferAddressRangeNV(GL_DRAW_INDIRECT_ADDRESS_NV, 0, commandAddr, regionCount * 8L);// Bind the command buffer

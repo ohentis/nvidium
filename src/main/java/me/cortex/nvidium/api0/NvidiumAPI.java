@@ -4,7 +4,6 @@ import org.joml.Matrix4fc;
 
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.NvidiumWorldRenderer;
-import me.cortex.nvidium.sodiumCompat.BeddiumAngelicaCompat;
 
 public class NvidiumAPI {
 
@@ -24,7 +23,7 @@ public class NvidiumAPI {
      */
     public void hideSection(int x, int y, int z) {
         if (Nvidium.IS_ENABLED) {
-            NvidiumWorldRenderer renderer = BeddiumAngelicaCompat.getWorldRenderer();
+            NvidiumWorldRenderer renderer = Nvidium.Compat.getWorldRenderer();
             if (renderer != null) {
                 renderer.getSectionManager()
                     .setHideBit(x, y, z, true);
@@ -42,7 +41,7 @@ public class NvidiumAPI {
      */
     public void showSection(int x, int y, int z) {
         if (Nvidium.IS_ENABLED) {
-            NvidiumWorldRenderer renderer = BeddiumAngelicaCompat.getWorldRenderer();
+            NvidiumWorldRenderer renderer = Nvidium.Compat.getWorldRenderer();
             if (renderer != null) {
                 renderer.getSectionManager()
                     .setHideBit(x, y, z, false);
@@ -61,7 +60,7 @@ public class NvidiumAPI {
      */
     public void setRegionTransformId(int id, int x, int y, int z) {
         if (Nvidium.IS_ENABLED) {
-            NvidiumWorldRenderer renderer = BeddiumAngelicaCompat.getWorldRenderer();
+            NvidiumWorldRenderer renderer = Nvidium.Compat.getWorldRenderer();
             if (renderer != null) {
                 renderer.getSectionManager()
                     .getRegionManager()
@@ -79,7 +78,7 @@ public class NvidiumAPI {
      */
     public void setTransformation(int id, Matrix4fc transform) {
         if (Nvidium.IS_ENABLED) {
-            NvidiumWorldRenderer renderer = BeddiumAngelicaCompat.getWorldRenderer();
+            NvidiumWorldRenderer renderer = Nvidium.Compat.getWorldRenderer();
             if (renderer != null) {
                 renderer.setTransformation(id, transform);
             }
@@ -97,7 +96,7 @@ public class NvidiumAPI {
      */
     public void setOrigin(int id, int x, int y, int z) {
         if (Nvidium.IS_ENABLED) {
-            NvidiumWorldRenderer renderer = BeddiumAngelicaCompat.getWorldRenderer();
+            NvidiumWorldRenderer renderer = Nvidium.Compat.getWorldRenderer();
             if (renderer != null) {
                 renderer.setOrigin(id, x, y, z);
             }

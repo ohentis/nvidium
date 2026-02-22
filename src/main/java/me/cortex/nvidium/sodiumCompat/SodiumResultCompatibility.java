@@ -15,7 +15,7 @@ import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 public class SodiumResultCompatibility {
 
     public static RepackagedSectionOutput repackage(ChunkBuildOutput result) {
-        int formatSize = BeddiumAngelicaCompat.getChunkVertexType()
+        int formatSize = Nvidium.Compat.getChunkVertexType()
             .getVertexFormat()
             .getStride();
         int geometryBytes = result.meshes.values()
@@ -64,9 +64,9 @@ public class SodiumResultCompatibility {
 
     private static void copyQuad(long from, long too) {
         // Quads are 64 bytes big using NvidiumCompactChunkVertex otherwise 80 bytes using CompactChunkVertex
-        long quadSize = BeddiumAngelicaCompat.getChunkVertexType()
+        long quadSize = Nvidium.Compat.getChunkVertexType()
             .getVertexFormat()
-            .getStride() * 4;
+            .getStride() * 4L;
         for (long i = 0; i < quadSize; i += 8) {
             MemoryUtil.memPutLong(too + i, MemoryUtil.memGetLong(from + i));
         }
@@ -79,7 +79,7 @@ public class SodiumResultCompatibility {
 
         long outPtr = MemoryUtil.memAddress(output.getDirectBuffer());
         // NOTE: mutates the input translucent geometry
-        var cameraPos = BeddiumAngelicaCompat.getCameraPosition();
+        var cameraPos = Nvidium.Compat.getCameraPosition();
 
         float cpx = (float) (cameraPos.x - (result.render.getChunkX() << 4));
         float cpy = (float) (cameraPos.y - (result.render.getChunkY() << 4));
@@ -100,7 +100,7 @@ public class SodiumResultCompatibility {
         }
 
         // Do translucent first
-        var translucentData = result.meshes.get(BeddiumAngelicaCompat.getTranslucentPass());
+        var translucentData = result.meshes.get(Nvidium.Compat.getTranslucentPass());
 
         // If we are using sodium translucency sorting, we don't need to sort quads
         if (translucentData != null && Nvidium.config.translucency_sorting_level == TranslucencySortingLevel.SODIUM) {
@@ -212,8 +212,8 @@ public class SodiumResultCompatibility {
 
         outOffsets[7] = (short) offset;
 
-        var solid = result.meshes.get(BeddiumAngelicaCompat.getSolidPass());
-        var cutout = result.meshes.get(BeddiumAngelicaCompat.getCutoutPass());
+        var solid = result.meshes.get(Nvidium.Compat.getSolidPass());
+        var cutout = result.meshes.get(Nvidium.Compat.getCutoutPass());
 
         // Do all but translucent
         long solidPartOffset = 0;
