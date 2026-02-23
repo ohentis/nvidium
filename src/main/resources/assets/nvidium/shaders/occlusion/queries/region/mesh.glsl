@@ -2,7 +2,7 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#extension GL_NV_mesh_shader : require
+#extension GL_EXT_mesh_shader : require
 #extension GL_NV_gpu_shader5 : require
 #extension GL_NV_bindless_texture : require
 #extension GL_NV_shader_buffer_load : require
@@ -23,17 +23,17 @@ const uint PILUTD[] = {1, 2, 0, 5, 5, 1, 7, 7};
 
 const uint PILUTE[] = {6, 2, 3, 7};
 void emitIndicies(int visIndex) {
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
-    gl_MeshPrimitivesNV[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
+    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
+    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
+    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
+    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
+    gl_MeshPrimitivesEXT[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
 }
 
 void emitParital(int visIndex) {
-    gl_PrimitiveIndicesNV[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
-    gl_MeshPrimitivesNV[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
-    gl_PrimitiveCountNV = 12;
+    gl_PrimitiveIndicesEXT[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
+    gl_MeshPrimitivesEXT[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
+    gl_PrimitiveCountEXT = 12;
 }
 
 void main() {
@@ -55,7 +55,7 @@ void main() {
 
     vec3 corner = vec3(((gl_LocalInvocationID.x&1)==0)?start.x:end.x, ((gl_LocalInvocationID.x&4)==0)?start.y:end.y, ((gl_LocalInvocationID.x&2)==0)?start.z:end.z);
     corner *= 16.0f;
-    gl_MeshVerticesNV[gl_LocalInvocationID.x].gl_Position = MVP*(getRegionTransformation(data)*vec4(corner, 1.0));
+    gl_MeshVerticesEXT[gl_LocalInvocationID.x].gl_Position = MVP*(getRegionTransformation(data)*vec4(corner, 1.0));
 
     int visibilityIndex = (int)gl_WorkGroupID.x;
 

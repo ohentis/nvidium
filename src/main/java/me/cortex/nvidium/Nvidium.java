@@ -40,7 +40,7 @@ public class Nvidium {
 
     public static void checkSystemIsCapable() {
         var cap = GL.getCapabilities();
-        boolean supported = cap.GL_NV_mesh_shader && cap.GL_NV_uniform_buffer_unified_memory
+        boolean supported = cap.GL_EXT_mesh_shader && cap.GL_NV_uniform_buffer_unified_memory
             && cap.GL_NV_vertex_buffer_unified_memory
             && cap.GL_NV_representative_fragment_test
             && cap.GL_ARB_sparse_buffer

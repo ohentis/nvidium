@@ -3,7 +3,7 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#extension GL_NV_mesh_shader : require
+#extension GL_EXT_mesh_shader : require
 #extension GL_NV_gpu_shader5 : require
 #extension GL_NV_bindless_texture : require
 
@@ -103,7 +103,7 @@ void putVertex(uint id, Vertex V) {
 
 void main() {
     if (gl_LocalInvocationIndex == 0) {
-        gl_PrimitiveCountNV = 0;//Set the prim count to 0
+        gl_PrimitiveCountEXT = 0;//Set the prim count to 0
     }
 
     uint quadId = getOffset();
@@ -168,23 +168,23 @@ void main() {
 
     //Common vertex depending on warp id
     putVertex(vertBase, triangle0 ? V0 : V2);
-    gl_MeshVerticesNV[vertBase].gl_Position = triangle0 ? pV0 : pV2;
+    gl_MeshVerticesEXT[vertBase].gl_Position = triangle0 ? pV0 : pV2;
 
     // The third vertex of our triangle if it hasn't been culled
     if (draw) {
         putVertex(vertBase + 1, V);
-        gl_MeshVerticesNV[vertBase + 1].gl_Position = pV;
+        gl_MeshVerticesEXT[vertBase + 1].gl_Position = pV;
 
-        gl_PrimitiveIndicesNV[triIndex * 3 + 0] = vertBase + 0; // Common vertex
-        gl_PrimitiveIndicesNV[triIndex * 3 + 1] = vertBase + 1; // Unique vertex
-        gl_PrimitiveIndicesNV[triIndex * 3 + 2] = vertBase + (triangle0 ? 2 :         // If it's triangle 0 our other common vertex is +2, ez
+        gl_PrimitiveIndicesEXT[triIndex * 3 + 0] = vertBase + 0; // Common vertex
+        gl_PrimitiveIndicesEXT[triIndex * 3 + 1] = vertBase + 1; // Unique vertex
+        gl_PrimitiveIndicesEXT[triIndex * 3 + 2] = vertBase + (triangle0 ? 2 :         // If it's triangle 0 our other common vertex is +2, ez
                                                                (peerDraw ? -2 : -1)); // If it's triangle 1 we need to check if peer triangle has been drawn to adjust common vertex idx
 
         // Emit primitive
-        gl_MeshPrimitivesNV[triIndex++].gl_PrimitiveID = int(quadId<<1) | (triangle0 ? 0 : 1);
+        gl_MeshPrimitivesEXT[triIndex++].gl_PrimitiveID = int(quadId<<1) | (triangle0 ? 0 : 1);
     }
 
     if (subgroupElect()) {
-        gl_PrimitiveCountNV = totalTris;
+        gl_PrimitiveCountEXT = totalTris;
     }
 }

@@ -3,7 +3,7 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#extension GL_NV_mesh_shader : require
+#extension GL_EXT_mesh_shader : require
 #extension GL_NV_gpu_shader5 : require
 #extension GL_NV_bindless_texture : require
 
@@ -32,15 +32,15 @@ const uint PILUTD[] = {1, 2, 0, 5, 5, 1, 7, 7};
 const uint PILUTE[] = {6, 2, 3, 7};
 
 void emitIndicies(int visIndex) {
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
-    gl_MeshPrimitivesNV[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
+    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
+    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
+    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
+    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
+    gl_MeshPrimitivesEXT[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
 }
 void emitParital(int visIndex) {
-    gl_PrimitiveIndicesNV[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
-    gl_MeshPrimitivesNV[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
+    gl_PrimitiveIndicesEXT[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
+    gl_MeshPrimitivesEXT[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
 }
 
 //TODO: Check if the section can be culled via fog
@@ -60,7 +60,7 @@ void main() {
     if (sectionEmpty(header) || (header.y&(1<<17)) != 0) {
         if (gl_LocalInvocationID.x == 0) {
             sectionVisibility[visibilityIndex] = uint8_t(0);
-            gl_PrimitiveCountNV = 0;
+            gl_PrimitiveCountEXT = 0;
         }
         return;
     }
@@ -78,7 +78,7 @@ void main() {
 
     //TODO: try mix instead or something other than just ternaries, i think they get compiled to a cmov type instruction but not sure
     corner += vec3(((gl_LocalInvocationID.x&1)==0)?mins.x:maxs.x, ((gl_LocalInvocationID.x&4)==0)?mins.y:maxs.y, ((gl_LocalInvocationID.x&2)==0)?mins.z:maxs.z);
-    gl_MeshVerticesNV[gl_LocalInvocationID.x].gl_Position = (MVP*(regionTransform*vec4(corner, 1.0)));
+    gl_MeshVerticesEXT[gl_LocalInvocationID.x].gl_Position = (MVP*(regionTransform*vec4(corner, 1.0)));
 
     int prim_payload = (visibilityIndex<<8)|int(((uint(lastData))<<1)&0xff)|1;
 
@@ -96,6 +96,6 @@ void main() {
         sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(isInSection?1:0);//Inject visibility aswell
         //sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(0);
 
-        gl_PrimitiveCountNV = 12;
+        gl_PrimitiveCountEXT = 12;
     }
 }
