@@ -17,7 +17,7 @@
 layout(local_size_x = 8) in;
 layout(triangles, max_vertices=8, max_primitives=12) out;
 
-taskNV in Task {
+in taskPayloadSharedEXT Task {
     uint32_t _visOutBase;//Base output visibility index
     uint32_t _offset;
     mat4 regionTransform;
@@ -32,14 +32,14 @@ const uint PILUTD[] = {1, 2, 0, 5, 5, 1, 7, 7};
 const uint PILUTE[] = {6, 2, 3, 7};
 
 void emitIndicies(int visIndex) {
-    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
     gl_MeshPrimitivesEXT[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
 }
 void emitParital(int visIndex) {
-    gl_PrimitiveIndicesEXT[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
     gl_MeshPrimitivesEXT[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
 }
 
@@ -60,7 +60,7 @@ void main() {
     if (sectionEmpty(header) || (header.y&(1<<17)) != 0) {
         if (gl_LocalInvocationID.x == 0) {
             sectionVisibility[visibilityIndex] = uint8_t(0);
-            gl_PrimitiveCountEXT = 0;
+            gl_PrimitiveCountNV(0,0);
         }
         return;
     }
@@ -96,6 +96,6 @@ void main() {
         sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(isInSection?1:0);//Inject visibility aswell
         //sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(0);
 
-        gl_PrimitiveCountEXT = 12;
+        SetMeshOutputsEXT(48,12);
     }
 }

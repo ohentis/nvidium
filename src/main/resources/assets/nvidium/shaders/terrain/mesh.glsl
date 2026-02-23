@@ -33,7 +33,7 @@ layout(location=1) out Interpolants {
 } OUT[];
 #endif
 
-taskNV in Task {
+in taskPayloadSharedEXT Task {
     vec3 origin;
     uint baseOffset;
     uint quadCount;
@@ -103,7 +103,7 @@ void putVertex(uint id, Vertex V) {
 
 void main() {
     if (gl_LocalInvocationIndex == 0) {
-        gl_PrimitiveCountEXT = 0;//Set the prim count to 0
+        SetMeshOutputsEXT(0,0);//Set the prim count to 0
     }
 
     uint quadId = getOffset();
@@ -175,9 +175,9 @@ void main() {
         putVertex(vertBase + 1, V);
         gl_MeshVerticesEXT[vertBase + 1].gl_Position = pV;
 
-        gl_PrimitiveIndicesEXT[triIndex * 3 + 0] = vertBase + 0; // Common vertex
-        gl_PrimitiveIndicesEXT[triIndex * 3 + 1] = vertBase + 1; // Unique vertex
-        gl_PrimitiveIndicesEXT[triIndex * 3 + 2] = vertBase + (triangle0 ? 2 :         // If it's triangle 0 our other common vertex is +2, ez
+        gl_PrimitiveTriangleIndicesEXT[triIndex * 3 + 0] = vertBase + 0; // Common vertex
+        gl_PrimitiveTriangleIndicesEXT[triIndex * 3 + 1] = vertBase + 1; // Unique vertex
+        gl_PrimitiveTriangleIndicesEXT[triIndex * 3 + 2] = vertBase + (triangle0 ? 2 :         // If it's triangle 0 our other common vertex is +2, ez
                                                                (peerDraw ? -2 : -1)); // If it's triangle 1 we need to check if peer triangle has been drawn to adjust common vertex idx
 
         // Emit primitive
@@ -185,6 +185,6 @@ void main() {
     }
 
     if (subgroupElect()) {
-        gl_PrimitiveCountEXT = totalTris;
+        SetMeshOutputsEXT(totalTris * 3, totalTris);
     }
 }

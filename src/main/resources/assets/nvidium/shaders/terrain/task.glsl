@@ -28,7 +28,7 @@ void main() {
 
     if (!shouldRenderVisible(sectionId)) {
         //Early exit if the section isnt visible
-        gl_TaskCountNV = 0;
+        EmitMeshTasksEXT(0,0,0);
         return;
     }
 

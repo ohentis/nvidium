@@ -19,7 +19,7 @@
 layout(local_size_x=1) in;
 
 //In here add an array that is then "logged" on in the mesh shader to find the draw data
-taskNV out Task {
+out taskPayloadSharedEXT Task {
     vec4 originAndBaseData;
     uint quadCount;
     #ifdef TRANSLUCENCY_SORTING_QUADS
@@ -52,7 +52,7 @@ void main() {
     if (!shouldRender(sectionId)) {
         //Early exit if the section isnt visible
         //TODO: also early exit if there are no translucents to render
-        gl_TaskCountNV = 0;
+        EmitMeshTasksEXT(0,0,0);
         return;
     }
 
@@ -78,7 +78,7 @@ void main() {
     #endif
 
     //Emit enough mesh shaders such that max(gl_GlobalInvocationID.x)>=quadCount
-    gl_TaskCountNV = (quadCount+MESH_WORKLOAD_PER_INVOCATION-1)/MESH_WORKLOAD_PER_INVOCATION;
+    EmitMeshTasksEXT((quadCount+MESH_WORKLOAD_PER_INVOCATION-1)/MESH_WORKLOAD_PER_INVOCATION,1,1);
 
     #ifdef STATISTICS_QUADS
     atomicAdd(statistics_buffer+2, quadCount);

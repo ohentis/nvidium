@@ -23,17 +23,17 @@ const uint PILUTD[] = {1, 2, 0, 5, 5, 1, 7, 7};
 
 const uint PILUTE[] = {6, 2, 3, 7};
 void emitIndicies(int visIndex) {
-    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesEXT[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
     gl_MeshPrimitivesEXT[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
 }
 
 void emitParital(int visIndex) {
-    gl_PrimitiveIndicesEXT[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
+    gl_PrimitiveTriangleIndicesEXT[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
     gl_MeshPrimitivesEXT[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
-    gl_PrimitiveCountEXT = 12;
+    SetMeshOutputsEXT(48,12)
 }
 
 void main() {
@@ -45,7 +45,7 @@ void main() {
     //If the region metadata was empty, return
     if (data.a == uint64_t(-1)) {
         regionVisibility[visibilityIndex] = uint8_t(0);
-        gl_PrimitiveCountEXT = 0;
+        SetMeshOutputsEXT(0,0);
         return;
     }
 

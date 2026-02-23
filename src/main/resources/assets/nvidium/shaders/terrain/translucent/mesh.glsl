@@ -27,7 +27,7 @@ layout(local_size_x = 32) in;
 layout(triangles, max_vertices=128, max_primitives=64) out;
 
 //originAndBaseData.w is in quad count space, so is endIdx
-taskNV in Task {
+in taskPayloadSharedEXT Task {
     vec4 originAndBaseData;
     uint quadCount;
     #ifdef TRANSLUCENCY_SORTING_QUADS
@@ -49,12 +49,12 @@ layout(location=1) out Interpolants {
 void emitQuadIndicies() {
     uint primBase = gl_LocalInvocationID.x * 6;
     uint vertexBase = gl_LocalInvocationID.x<<2;
-    gl_PrimitiveIndicesEXT[primBase+0] = vertexBase+0;
-    gl_PrimitiveIndicesEXT[primBase+1] = vertexBase+1;
-    gl_PrimitiveIndicesEXT[primBase+2] = vertexBase+2;
-    gl_PrimitiveIndicesEXT[primBase+3] = vertexBase+2;
-    gl_PrimitiveIndicesEXT[primBase+4] = vertexBase+3;
-    gl_PrimitiveIndicesEXT[primBase+5] = vertexBase+0;
+    gl_PrimitiveTriangleIndicesEXT[primBase+0] = vertexBase+0;
+    gl_PrimitiveTriangleIndicesEXT[primBase+1] = vertexBase+1;
+    gl_PrimitiveTriangleIndicesEXT[primBase+2] = vertexBase+2;
+    gl_PrimitiveTriangleIndicesEXT[primBase+3] = vertexBase+2;
+    gl_PrimitiveTriangleIndicesEXT[primBase+4] = vertexBase+3;
+    gl_PrimitiveTriangleIndicesEXT[primBase+5] = vertexBase+0;
 }
 
 void emitVertex(uint vertexBaseId, uint innerId) {
@@ -203,7 +203,8 @@ void main() {
 
     if (gl_LocalInvocationID.x == 0) {
         //Remaining quads in workgroup
-        gl_PrimitiveCountEXT = min(uint(int(quadCount)-int(gl_WorkGroupID.x<<5))<<1, 64);//2 primatives per quad
+        uint tris = min(uint(int(quadCount)-int(gl_WorkGroupID.x<<5))<<1, 64);//2 primatives per quad
+        SetMeshOutputsEXT(tris * 3, tris);
     }
 
 }
