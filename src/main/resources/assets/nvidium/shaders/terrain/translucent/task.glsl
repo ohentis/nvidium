@@ -3,7 +3,11 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
+#ifdef USE_GL_EXT_MESH_SHADERS
 #extension GL_EXT_mesh_shader : require
+#else
+#extension GL_NV_mesh_shader : require
+#endif
 #extension GL_NV_gpu_shader5 : require
 #extension GL_NV_bindless_texture : require
 
@@ -19,7 +23,11 @@
 layout(local_size_x=1) in;
 
 //In here add an array that is then "logged" on in the mesh shader to find the draw data
+#ifdef USE_GL_EXT_MESH_SHADERS
 out taskPayloadSharedEXT Task {
+#else
+taskNV out Task {
+#endif
     vec4 originAndBaseData;
     uint quadCount;
     #ifdef TRANSLUCENCY_SORTING_QUADS
@@ -52,7 +60,11 @@ void main() {
     if (!shouldRender(sectionId)) {
         //Early exit if the section isnt visible
         //TODO: also early exit if there are no translucents to render
+        #ifdef USE_GL_EXT_MESH_SHADERS
         EmitMeshTasksEXT(0,0,0);
+        #else
+        gl_TaskCountNV = 0;
+        #endif
         return;
     }
 

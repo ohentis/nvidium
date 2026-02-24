@@ -2,7 +2,19 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
+
+#ifdef USE_GL_EXT_MESH_SHADERS
 #extension GL_EXT_mesh_shader : require
+#define MESHVERTICES gl_MeshVerticesEXT
+#define MESHPRIMITIVES gl_MeshPrimitivesEXT
+#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveTriangleIndicesEXT
+#else
+#extension GL_NV_mesh_shader : require
+#define MESHVERTICES gl_MeshVerticesNV
+#define MESHPRIMITIVES gl_MeshPrimitivesNV
+#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveIndicesNV
+#endif
+
 #extension GL_NV_gpu_shader5 : require
 #extension GL_NV_bindless_texture : require
 #extension GL_NV_shader_buffer_load : require
@@ -23,17 +35,21 @@ const uint PILUTD[] = {1, 2, 0, 5, 5, 1, 7, 7};
 
 const uint PILUTE[] = {6, 2, 3, 7};
 void emitIndicies(int visIndex) {
-    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
-    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
-    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
-    gl_PrimitiveTriangleIndicesEXT[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
-    gl_MeshPrimitivesEXT[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
+    MESHPRIMITIVES[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
 }
 
 void emitParital(int visIndex) {
-    gl_PrimitiveTriangleIndicesEXT[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
-    gl_MeshPrimitivesEXT[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
-    SetMeshOutputsEXT(48,12)
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
+    MESHPRIMITIVES[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
+    #ifdef USE_GL_EXT_MESH_SHADERS
+    SetMeshOutputsEXT(48,12);
+    #else
+    gl_PrimitiveCountNV = 12;
+    #endif
 }
 
 void main() {
@@ -45,7 +61,11 @@ void main() {
     //If the region metadata was empty, return
     if (data.a == uint64_t(-1)) {
         regionVisibility[visibilityIndex] = uint8_t(0);
+        #ifdef USE_GL_EXT_MESH_SHADERS
         SetMeshOutputsEXT(0,0);
+        #else
+        gl_PrimitiveCountNV = 0;
+        #endif
         return;
     }
 
@@ -64,7 +84,7 @@ void main() {
 
     vec3 corner = vec3(((gl_LocalInvocationID.x&1)==0)?start.x:end.x, ((gl_LocalInvocationID.x&4)==0)?start.y:end.y, ((gl_LocalInvocationID.x&2)==0)?start.z:end.z);
     corner *= 16.0f;
-    gl_MeshVerticesEXT[gl_LocalInvocationID.x].gl_Position = MVP*(getRegionTransformation(data)*vec4(corner, 1.0));
+    MESHVERTICES[gl_LocalInvocationID.x].gl_Position = MVP*(getRegionTransformation(data)*vec4(corner, 1.0));
 
 
     emitIndicies(visibilityIndex);

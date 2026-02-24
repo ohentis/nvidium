@@ -1,6 +1,10 @@
 #define MESH_WORKLOAD_PER_INVOCATION 32
 
+#ifdef USE_GL_EXT_MESH_SHADERS
 out taskPayloadSharedEXT Task {
+#else
+taskNV out Task {
+#endif
     vec3 origin;
     uint baseOffset;
     uint quadCount;
@@ -89,5 +93,10 @@ void populateTasks(ivec3 relChunkPos, uvec4 ranges) {
     quadCount = lastIndex;
 
     //Emit enough mesh shaders such that max(gl_GlobalInvocationID.x)>=2*quadCount
-    EmitMeshTasksEXT(((lastIndex*2)+MESH_WORKLOAD_PER_INVOCATION-1)/MESH_WORKLOAD_PER_INVOCATION,1,1);
+    uint meshes = ((lastIndex*2)+MESH_WORKLOAD_PER_INVOCATION-1)/MESH_WORKLOAD_PER_INVOCATION;
+    #ifdef GL_USE_GL_EXT_MESH_SHADERS
+    EmitMeshTasksEXT(meshes,1,1);
+    #else
+    gl_TaskCountNV = meshes;
+    #endif
 }

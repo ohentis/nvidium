@@ -3,7 +3,19 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
+
+#ifdef USE_GL_EXT_MESH_SHADERS
 #extension GL_EXT_mesh_shader : require
+#define MESHVERTICES gl_MeshVerticesEXT
+#define MESHPRIMITIVES gl_MeshPrimitivesEXT
+#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveTriangleIndicesEXT
+#else
+#extension GL_NV_mesh_shader : require
+#define MESHVERTICES gl_MeshVerticesNV
+#define MESHPRIMITIVES gl_MeshPrimitivesNV
+#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveIndicesNV
+#endif
+
 #extension GL_NV_gpu_shader5 : require
 #extension GL_NV_bindless_texture : require
 
@@ -33,7 +45,11 @@ layout(location=1) out Interpolants {
 } OUT[];
 #endif
 
+#ifdef USE_GL_EXT_MESH_SHADERS
 in taskPayloadSharedEXT Task {
+#else
+taskNV in Task {
+#endif
     vec3 origin;
     uint baseOffset;
     uint quadCount;
@@ -103,7 +119,11 @@ void putVertex(uint id, Vertex V) {
 
 void main() {
     if (gl_LocalInvocationIndex == 0) {
+        #ifdef USE_GL_EXT_MESH_SHADERS
         SetMeshOutputsEXT(0,0);//Set the prim count to 0
+        #else
+        gl_PrimitiveCountNV = 0;
+        #endif
     }
 
     uint quadId = getOffset();
@@ -168,23 +188,27 @@ void main() {
 
     //Common vertex depending on warp id
     putVertex(vertBase, triangle0 ? V0 : V2);
-    gl_MeshVerticesEXT[vertBase].gl_Position = triangle0 ? pV0 : pV2;
+    MESHVERTICES[vertBase].gl_Position = triangle0 ? pV0 : pV2;
 
     // The third vertex of our triangle if it hasn't been culled
     if (draw) {
         putVertex(vertBase + 1, V);
-        gl_MeshVerticesEXT[vertBase + 1].gl_Position = pV;
+        MESHVERTICES[vertBase + 1].gl_Position = pV;
 
-        gl_PrimitiveTriangleIndicesEXT[triIndex * 3 + 0] = vertBase + 0; // Common vertex
-        gl_PrimitiveTriangleIndicesEXT[triIndex * 3 + 1] = vertBase + 1; // Unique vertex
-        gl_PrimitiveTriangleIndicesEXT[triIndex * 3 + 2] = vertBase + (triangle0 ? 2 :         // If it's triangle 0 our other common vertex is +2, ez
+        MESH_PRIMITIVE_TRIANGLE_INDICIES[triIndex * 3 + 0] = vertBase + 0; // Common vertex
+        MESH_PRIMITIVE_TRIANGLE_INDICIES[triIndex * 3 + 1] = vertBase + 1; // Unique vertex
+        MESH_PRIMITIVE_TRIANGLE_INDICIES[triIndex * 3 + 2] = vertBase + (triangle0 ? 2 :         // If it's triangle 0 our other common vertex is +2, ez
                                                                (peerDraw ? -2 : -1)); // If it's triangle 1 we need to check if peer triangle has been drawn to adjust common vertex idx
 
         // Emit primitive
-        gl_MeshPrimitivesEXT[triIndex++].gl_PrimitiveID = int(quadId<<1) | (triangle0 ? 0 : 1);
+        MESHPRIMITIVES[triIndex++].gl_PrimitiveID = int(quadId<<1) | (triangle0 ? 0 : 1);
     }
 
     if (subgroupElect()) {
+        #ifdef USE_GL_EXT_MESH_SHADERS
         SetMeshOutputsEXT(totalTris * 3, totalTris);
+        #else
+        gl_PrimitiveCountNV = totalTris;
+        #endif
     }
 }
