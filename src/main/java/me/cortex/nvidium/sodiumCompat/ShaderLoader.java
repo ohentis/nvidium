@@ -2,17 +2,18 @@ package me.cortex.nvidium.sodiumCompat;
 
 import java.util.function.Consumer;
 
-import com.gtnewhorizon.gtnhlib.capability.Capabilities;
 import net.minecraft.util.ResourceLocation;
 
 import org.embeddedt.embeddium.impl.gl.shader.ShaderConstants;
 import org.embeddedt.embeddium.impl.gl.shader.ShaderParser;
+import org.lwjgl.opengl.GL;
 
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.config.StatisticsLoggingLevel;
 import me.cortex.nvidium.config.TranslucencySortingLevel;
-import org.lwjgl.opengl.GL;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
+@Lwjgl3Aware
 public class ShaderLoader {
 
     public static String parse(ResourceLocation path) {
