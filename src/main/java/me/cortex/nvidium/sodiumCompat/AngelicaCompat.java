@@ -87,8 +87,7 @@ public class AngelicaCompat implements ISodiumCalls {
 
     @Override
     public int getCpuRenderAheadLimit() {
-        return CeleritasWorldRenderer.getInstance()
-            .getEffectiveRenderDistance();
+        return AngelicaMod.options().performance.cpuRenderAheadLimit;
     }
 
     @Override
