@@ -2,6 +2,7 @@ package me.cortex.nvidium.sodiumCompat;
 
 import java.util.function.Consumer;
 
+import com.gtnewhorizon.gtnhlib.capability.Capabilities;
 import net.minecraft.util.ResourceLocation;
 
 import org.embeddedt.embeddium.impl.gl.shader.ShaderConstants;
@@ -10,6 +11,7 @@ import org.embeddedt.embeddium.impl.gl.shader.ShaderParser;
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.config.StatisticsLoggingLevel;
 import me.cortex.nvidium.config.TranslucencySortingLevel;
+import org.lwjgl.opengl.GL;
 
 public class ShaderLoader {
 
@@ -49,6 +51,9 @@ public class ShaderLoader {
         }
         if (Nvidium.config.use_nv_fragment_shader_barycentric) {
             builder.add("USE_NV_FRAGMENT_SHADER_BARYCENTRIC");
+        }
+        if (GL.getCapabilities().GL_EXT_mesh_shader) {
+            builder.add("USE_GL_EXT_MESH_SHADERS");
         }
 
         builder.add("TEXTURE_MAX_SCALE", String.valueOf(NvidiumCompactChunkVertex.TEXTURE_MAX_VALUE));

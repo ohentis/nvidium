@@ -30,9 +30,9 @@ layout(local_size_x = 8) in;
 layout(triangles, max_vertices=8, max_primitives=12) out;
 
 #ifdef USE_GL_EXT_MESH_SHADERS
-out taskPayloadSharedEXT Task {
+in taskPayloadSharedEXT Task {
 #else
-taskNV out Task {
+taskNV in Task {
 #endif
     uint32_t _visOutBase;//Base output visibility index
     uint32_t _offset;
@@ -76,7 +76,11 @@ void main() {
     if (sectionEmpty(header) || (header.y&(1<<17)) != 0) {
         if (gl_LocalInvocationID.x == 0) {
             sectionVisibility[visibilityIndex] = uint8_t(0);
-            gl_PrimitiveCountNV(0,0);
+            #ifdef USE_GL_EXT_MESH_SHADERS
+            SetMeshOutputsEXT(0,0);
+            #else
+            gl_PrimitiveCountNV = 0;
+            #endif
         }
         return;
     }

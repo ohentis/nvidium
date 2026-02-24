@@ -36,7 +36,7 @@ void main() {
 
     if (!shouldRenderVisible(sectionId)) {
         //Early exit if the section isnt visible
-        #ifdef GL_USE_GL_EXT_MESH_SHADERS
+        #ifdef USE_GL_EXT_MESH_SHADERS
         EmitMeshTasksEXT(0,0,0);
         #else
         gl_TaskCountNV = 0;

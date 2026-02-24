@@ -94,7 +94,7 @@ void populateTasks(ivec3 relChunkPos, uvec4 ranges) {
 
     //Emit enough mesh shaders such that max(gl_GlobalInvocationID.x)>=2*quadCount
     uint meshes = ((lastIndex*2)+MESH_WORKLOAD_PER_INVOCATION-1)/MESH_WORKLOAD_PER_INVOCATION;
-    #ifdef GL_USE_GL_EXT_MESH_SHADERS
+    #ifdef USE_GL_EXT_MESH_SHADERS
     EmitMeshTasksEXT(meshes,1,1);
     #else
     gl_TaskCountNV = meshes;
