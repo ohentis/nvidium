@@ -2,8 +2,11 @@ package me.cortex.nvidium.util;
 
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.gl.RenderDevice;
+import me.cortex.nvidium.gl.buffers.Buffer;
 import me.cortex.nvidium.gl.buffers.IDeviceMappedBuffer;
-import me.cortex.nvidium.gl.buffers.PersistentSparseAddressableBuffer;
+import me.cortex.nvidium.gl.buffers.SparseSsboBuffer;
+import me.cortex.nvidium.gl.buffers.SparseSsboBuffer;
+import me.cortex.nvidium.gl.buffers.SsboBuffer;
 
 // TODO: make it not remove and immediately deallocate the sparse pages, wait until the end of a frame to deallocate
 // since committing pages is not cheap
@@ -11,7 +14,7 @@ public class BufferArena {
 
     SegmentedManager segments = new SegmentedManager();
     private final RenderDevice device;
-    public final IDeviceMappedBuffer buffer;
+    public final Buffer buffer;
     private long totalQuads;
     private final int vertexFormatSize;
 
@@ -22,9 +25,9 @@ public class BufferArena {
         this.vertexFormatSize = vertexFormatSize;
         this.memory_size = memory;
         if (Nvidium.SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER) {
-            buffer = device.createSparseBuffer(80000000000L);// Create a 80gb buffer
+            buffer = new SparseSsboBuffer(80000000000L);// Create a 80gb buffer
         } else {
-            buffer = device.createDeviceOnlyMappedBuffer(memory);
+            buffer = new SsboBuffer(memory);
             this.segments.setLimit(memory / (4L * this.vertexFormatSize));
         }
         // Reserve index 0
@@ -37,7 +40,7 @@ public class BufferArena {
         if (addr == SegmentedManager.SIZE_LIMIT) {
             return addr;
         }
-        if (buffer instanceof PersistentSparseAddressableBuffer psab) {
+        if (buffer instanceof SparseSsboBuffer psab) {
             psab.ensureAllocated(
                 Integer.toUnsignedLong(addr) * 4L * vertexFormatSize,
                 quadCount * 4L * vertexFormatSize);
@@ -48,7 +51,7 @@ public class BufferArena {
     public void free(int addr) {
         int count = segments.free(addr);
         totalQuads -= count;
-        if (buffer instanceof PersistentSparseAddressableBuffer psab) {
+        if (buffer instanceof SparseSsboBuffer psab) {
             psab.deallocate(Integer.toUnsignedLong(addr) * 4L * vertexFormatSize, count * 4L * vertexFormatSize);
         }
     }
@@ -65,8 +68,8 @@ public class BufferArena {
     }
 
     public int getAllocatedMB() {
-        if (buffer instanceof PersistentSparseAddressableBuffer psab) {
-            return (int) ((psab.getPagesCommitted() * PersistentSparseAddressableBuffer.PAGE_SIZE) / (1024 * 1024));
+        if (buffer instanceof SparseSsboBuffer psab) {
+            return (int) ((psab.getPagesCommitted() * SparseSsboBuffer.PAGE_SIZE) / (1024 * 1024));
         } else {
             return (int) (memory_size / (1024 * 1024));
         }
@@ -77,8 +80,8 @@ public class BufferArena {
     }
 
     public long getMemoryUsed() {
-        if (buffer instanceof PersistentSparseAddressableBuffer psab) {
-            return (psab.getPagesCommitted() * PersistentSparseAddressableBuffer.PAGE_SIZE);
+        if (buffer instanceof SparseSsboBuffer psab) {
+            return (psab.getPagesCommitted() * SparseSsboBuffer.PAGE_SIZE);
         } else {
             return memory_size;
         }

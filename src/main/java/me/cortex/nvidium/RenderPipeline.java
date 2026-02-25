@@ -367,10 +367,6 @@ public class RenderPipeline {
             addr += 8;
             MemoryUtil.memPutLong(addr, translucencyCommandBuffer.getDeviceAddress());
             addr += 8;
-            MemoryUtil.memPutLong(addr, sectionManager.terrainAreana.buffer.getDeviceAddress());
-            addr += 8;
-            MemoryUtil.memPutLong(addr, sectionManager.translucencyIndexArena.buffer.getDeviceAddress());
-            addr += 8;
             // Convert it into the expected size values and floats
             MemoryUtil.memPutFloat(addr, ((float) screenWidth) / 2);
             addr += 4;
@@ -431,7 +427,8 @@ public class RenderPipeline {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, regionVisibility.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, sectionVisibility.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, regionSortingList.getId());
-
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, sectionManager.terrainAreana.buffer.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, sectionManager.translucencyIndexArena.buffer.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, transformationArray.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 12, originOffsetArray.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, statisticsBuffer.getId());

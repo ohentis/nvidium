@@ -75,9 +75,7 @@ layout(std140, binding=0) uniform SceneData {
     writeonly restrict uvec2 *translucencyCommandBuffer;
 
 
-    //TODO:FIXME: only apply non readonly to translucency mesh
-    restrict Vertex *terrainData;//readonly
-    restrict uint   *translucencyIndexData;
+
 
     //TODO: possibly make this a uniform instead of a buffer, but it might get quite large is the issue
     //readonly restrict u64vec4 *terrainData;
@@ -115,6 +113,12 @@ layout(std430, binding=5) restrict buffer SectionVisibility {
 };
 layout(std430, binding=8) readonly restrict buffer SortingRegionList {
     uint16_t sortingRegionList[];
+};
+layout(std430, binding=9) restrict buffer TerrainData {
+    Vertex terrainData[];
+};
+layout(std430, binding=10) restrict buffer TranslucencyIndexData {
+    uint translucencyIndexData[];
 };
 layout(std430, binding=11) readonly restrict buffer TransformationArray {
     mat4 transformationArray[];
