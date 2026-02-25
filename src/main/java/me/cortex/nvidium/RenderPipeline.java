@@ -120,7 +120,7 @@ public class RenderPipeline {
 
     private final SsboBuffer regionVisibility;
     private final SsboBuffer sectionVisibility;
-    private final IDeviceMappedBuffer terrainCommandBuffer;
+    private final SsboBuffer terrainCommandBuffer;
     private final IDeviceMappedBuffer translucencyCommandBuffer;
     private final SsboBuffer regionSortingList;
     private final SsboBuffer statisticsBuffer;
@@ -167,7 +167,7 @@ public class RenderPipeline {
         regionIndicies = new SsboBuffer(maxRegions * 2L);
         regionVisibility = new SsboBuffer(maxRegions);
         sectionVisibility = new SsboBuffer(maxRegions * 256L);
-        terrainCommandBuffer = device.createDeviceOnlyMappedBuffer(maxRegions * 8L);
+        terrainCommandBuffer = new SsboBuffer(maxRegions * 8L);
         translucencyCommandBuffer = device.createDeviceOnlyMappedBuffer(maxRegions * 8L);
         regionSortingList = new SsboBuffer(maxRegions * 2L);
         this.transformationArray = new SsboBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * (4 * 4 * 4));
@@ -363,8 +363,6 @@ public class RenderPipeline {
             addr += 16;
             new Vector4f(0, 0, 0, 1).getToAddress(addr); // Fog color
             addr += 16;
-            MemoryUtil.memPutLong(addr, terrainCommandBuffer.getDeviceAddress());
-            addr += 8;
             MemoryUtil.memPutLong(addr, translucencyCommandBuffer.getDeviceAddress());
             addr += 8;
             // Convert it into the expected size values and floats
@@ -436,7 +434,7 @@ public class RenderPipeline {
         if (prevRegionCount != 0) {
             glEnable(GL_DEPTH_TEST);
             terrainRasterizer
-                .raster(prevRegionCount, terrainCommandBuffer.getDeviceAddress(), primaryFrameTimeProfiler);
+                .raster(prevRegionCount, terrainCommandBuffer.getId(), primaryFrameTimeProfiler);
             glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
         }
 
@@ -480,13 +478,16 @@ public class RenderPipeline {
         // glMemoryBarrier(GL_SHADER_GLOBAL_ACCESS_BARRIER_BIT_NV);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-        prevRegionCount = visibleRegions;
+
 
         // Do temporal rasterization
         if (Nvidium.config.enable_temporal_coherence) {
             glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
-            temporalRasterizer.raster(visibleRegions, terrainCommandBuffer.getDeviceAddress());
+            temporalRasterizer.raster(prevRegionCount, terrainCommandBuffer.getId());
         }
+        prevRegionCount = visibleRegions;
+
+
 
         {// Do proper visibility tracking
             glDepthMask(false);

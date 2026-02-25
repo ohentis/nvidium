@@ -4,7 +4,9 @@ import static me.cortex.nvidium.RenderPipeline.GL_DRAW_INDIRECT_ADDRESS_NV;
 import static me.cortex.nvidium.gl.shader.ShaderType.*;
 import static org.lwjgl.opengl.GL11C.*;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_S;
+import static org.lwjgl.opengl.GL15C.glBindBuffer;
 import static org.lwjgl.opengl.GL33.glGenSamplers;
+import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
 import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
 import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
 
@@ -42,7 +44,7 @@ public class TemporalTerrainRasterizer extends Phase {
         GL45C.glSamplerParameteri(lightSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 
-    public void raster(int regionCount, long commandAddr) {
+    public void raster(int regionCount, int commandBufferId) {
         shader.bind();
 
         int blockId = Minecraft.getMinecraft()
@@ -58,8 +60,9 @@ public class TemporalTerrainRasterizer extends Phase {
         GL45C.glBindTextureUnit(1, lightId);
         GL45C.glBindSampler(1, lightSampler);
 
-        glBufferAddressRangeNV(GL_DRAW_INDIRECT_ADDRESS_NV, 0, commandAddr, regionCount * 8L);// Bind the command buffer
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBufferId);
         glMultiDrawMeshTasksIndirectNV(0, regionCount, 0);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 
         GL45C.glBindSampler(0, 0);
         GL45C.glBindSampler(1, 0);
