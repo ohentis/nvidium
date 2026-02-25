@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
+import me.cortex.nvidium.gl.buffers.SsboBuffer;
 import org.embeddedt.embeddium.impl.render.viewport.Viewport;
 import org.lwjgl.system.MemoryUtil;
 
@@ -28,8 +29,8 @@ public class RegionManager {
 
     private static final int TOTAL_SECTION_META_SIZE = SectionManager.SECTION_SIZE * 256;
 
-    private final IDeviceMappedBuffer regionBuffer;
-    private final IDeviceMappedBuffer sectionBuffer;
+    private final SsboBuffer regionBuffer;
+    private final SsboBuffer sectionBuffer;
     private final RenderDevice device;
     private final UploadingBufferStream uploadStream;
 
@@ -46,8 +47,8 @@ public class RegionManager {
         Consumer<Integer> regionUploaded) {
         this.regionMap.defaultReturnValue(-1);
         this.device = device;
-        this.regionBuffer = device.createDeviceOnlyMappedBuffer((long) maxRegions * META_SIZE);
-        this.sectionBuffer = device.createDeviceOnlyMappedBuffer((long) maxSections * SectionManager.SECTION_SIZE);
+        this.regionBuffer = new SsboBuffer((long) maxRegions * META_SIZE);
+        this.sectionBuffer = new SsboBuffer((long) maxSections * SectionManager.SECTION_SIZE);
         this.uploadStream = uploadStream;
         this.regions = new Region[maxRegions];
         this.regionUploadCallback = regionUploaded;
@@ -311,12 +312,17 @@ public class RegionManager {
             || (region.rz << 7 <= camZ && camZ <= ((region.rz + 1) << 7));
     }
 
-    public long getRegionBufferAddress() {
-        return this.regionBuffer.getDeviceAddress();
+
+    public int getRegionBufferId() {
+        return this.regionBuffer.getId();
     }
 
     public long getSectionBufferAddress() {
         return this.sectionBuffer.getDeviceAddress();
+    }
+
+    public int getSectionBufferId() {
+        return this.sectionBuffer.getId();
     }
 
     public long regionIdToKey(int regionId) {

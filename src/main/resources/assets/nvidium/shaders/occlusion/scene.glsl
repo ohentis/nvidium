@@ -70,30 +70,19 @@ layout(std140, binding=0) uniform SceneData {
 
     //vec4  subChunkPosition;//The subChunkTranslation is already done inside the MVP
     //align(8)
-    readonly restrict uint16_t *regionIndicies;//Pointer to block of memory at the end of the SceneData struct, also mapped to be a uniform
-    readonly restrict Region *regionData;
-    restrict Section *sectionData;
-    //NOTE: for the following, can make it so that region visibility actually uses section visibility array
-    restrict uint8_t *regionVisibility;
-    restrict uint8_t *sectionVisibility;
     //Terrain command buffer, the first 4 bytes are actually the count
     writeonly restrict uvec2 *terrainCommandBuffer;
     writeonly restrict uvec2 *translucencyCommandBuffer;
 
-    readonly restrict uint16_t *sortingRegionList;
 
     //TODO:FIXME: only apply non readonly to translucency mesh
     restrict Vertex *terrainData;//readonly
     restrict uint   *translucencyIndexData;
 
     //TODO: possibly make this a uniform instead of a buffer, but it might get quite large is the issue
-    readonly restrict mat4 *transformationArray;
-    readonly restrict uint64_t *originArray;
-
     //readonly restrict u64vec4 *terrainData;
     //uvec4 *terrainData;
 
-    uint32_t *statistics_buffer;
 
     vec2 screenSize;
     vec2 texCoordShrink;
@@ -108,6 +97,33 @@ layout(std140, binding=0) uniform SceneData {
     uint16_t regionCount;//Number of regions in regionIndicies
     //align(1)
     uint8_t frameId;
+};
+layout(std430, binding=1) readonly restrict buffer RegionIndicies {
+    uint16_t regionIndicies[];
+};
+layout(std430, binding=2) readonly restrict buffer RegionData {
+    Region regionData[];
+};
+layout(std430, binding=3) restrict buffer SectionData {
+    Section sectionData[];
+};
+layout(std430, binding = 4) restrict buffer RegionVisibility {
+    uint8_t regionVisibility[];
+};
+layout(std430, binding=5) restrict buffer SectionVisibility {
+    uint8_t sectionVisibility[];
+};
+layout(std430, binding=8) readonly restrict buffer SortingRegionList {
+    uint16_t sortingRegionList[];
+};
+layout(std430, binding=11) readonly restrict buffer TransformationArray {
+    mat4 transformationArray[];
+};
+layout(std430, binding=12) readonly restrict buffer OriginArray {
+    uint64_t originArray[];
+};
+layout(std430, binding=13) restrict buffer StatisticsBuffer {
+    uint32_t statistics_buffer[];
 };
 
 mat4 getRegionTransformation(Region region) {

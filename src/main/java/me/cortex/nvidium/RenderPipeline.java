@@ -16,7 +16,9 @@ import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnableClientState;
 import static org.lwjgl.opengl.GL30C.GL_R8UI;
 import static org.lwjgl.opengl.GL30C.GL_RED_INTEGER;
+import static org.lwjgl.opengl.GL30C.glBindBufferBase;
 import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
+import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
 import static org.lwjgl.opengl.GL45.nglClearNamedBufferData;
 import static org.lwjgl.opengl.GL45.nglClearNamedBufferSubData;
 import static org.lwjgl.opengl.NVRepresentativeFragmentTest.GL_REPRESENTATIVE_FRAGMENT_TEST_NV;
@@ -27,6 +29,7 @@ import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.*;
 import java.util.BitSet;
 import java.util.List;
 
+import me.cortex.nvidium.gl.buffers.SsboBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.util.Util;
@@ -89,19 +92,17 @@ public class RenderPipeline {
     private SortRegionSectionPhase regionSectionSorter;
 
     private final IDeviceMappedBuffer sceneUniform;
+    private final SsboBuffer regionIndicies;
     private static final int SCENE_SIZE = (int) alignUp(4 * 4 * 4 + // mat4 MVP
         4 * 4 * 4 + // mat4 MVPInv (Optional)
         4 * 4 + // ivec4 chunkPosition
         4 * 4 + // vec4 subchunkOffset
         4 * 4 + // vec4 fogColour
-        8 + // uint16_t *regionIndicies
         8 + // Region *regionData
         8 + // Section *sectionData
-        8 + // uint8_t *regionVisibility
         8 + // uint8_t *sectionVisibility
         8 + // uvec2 *terrainCommandBuffer
         8 + // uvec2 *translucencyCommandBuffer
-        8 + // uint16_t *sortingRegionList
         8 + // Vertex *terrainData
         8 + // uint *translucencyIndexData TODO
         8 + // mat4 *transformationArray
@@ -117,14 +118,14 @@ public class RenderPipeline {
         1 // uint8_t frameId
         , 2);
 
-    private final IDeviceMappedBuffer regionVisibility;
-    private final IDeviceMappedBuffer sectionVisibility;
+    private final SsboBuffer regionVisibility;
+    private final SsboBuffer sectionVisibility;
     private final IDeviceMappedBuffer terrainCommandBuffer;
     private final IDeviceMappedBuffer translucencyCommandBuffer;
-    private final IDeviceMappedBuffer regionSortingList;
-    private final IDeviceMappedBuffer statisticsBuffer;
-    private final IDeviceMappedBuffer transformationArray;
-    private final IDeviceMappedBuffer originOffsetArray;
+    private final SsboBuffer regionSortingList;
+    private final SsboBuffer statisticsBuffer;
+    private final SsboBuffer transformationArray;
+    private final SsboBuffer originOffsetArray;
 
     private final BitSet regionVisibilityTracker;
 
@@ -162,20 +163,20 @@ public class RenderPipeline {
         int maxRegions = sectionManager.getRegionManager()
             .maxRegions();
 
-        sceneUniform = device.createDeviceOnlyMappedBuffer(SCENE_SIZE + maxRegions * 2L);
-        regionVisibility = device.createDeviceOnlyMappedBuffer(maxRegions);
-        sectionVisibility = device.createDeviceOnlyMappedBuffer(maxRegions * 256L);
+        sceneUniform = device.createDeviceOnlyMappedBuffer(SCENE_SIZE );
+        regionIndicies = new SsboBuffer(maxRegions * 2L);
+        regionVisibility = new SsboBuffer(maxRegions);
+        sectionVisibility = new SsboBuffer(maxRegions * 256L);
         terrainCommandBuffer = device.createDeviceOnlyMappedBuffer(maxRegions * 8L);
         translucencyCommandBuffer = device.createDeviceOnlyMappedBuffer(maxRegions * 8L);
-        regionSortingList = device.createDeviceOnlyMappedBuffer(maxRegions * 2L);
-        this.transformationArray = device
-            .createDeviceOnlyMappedBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * (4 * 4 * 4));
-        this.originOffsetArray = device.createDeviceOnlyMappedBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * 8);
+        regionSortingList = new SsboBuffer(maxRegions * 2L);
+        this.transformationArray = new SsboBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * (4 * 4 * 4));
+        this.originOffsetArray = new SsboBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * 8);
 
         regionVisibilityTracker = new BitSet(maxRegions);
         regionVisibilityTracking = new RegionVisibilityTracker(downloadStream, maxRegions);
 
-        statisticsBuffer = device.createDeviceOnlyMappedBuffer(4 * 4);
+        statisticsBuffer = new SsboBuffer(4 * 4);
         stats = new Statistics();
 
         // Initialize the transformationArray buffer to the identity affine transform
@@ -325,7 +326,7 @@ public class RenderPipeline {
 
             regionMap = new short[regions.size()];
             if (visibleRegions == 0) return;
-            long addr = uploadStream.upload(sceneUniform, SCENE_SIZE, visibleRegions * 2);
+            long addr = uploadStream.upload(regionIndicies, 0, visibleRegions * 2);
             queryAddr = addr;// This is ungodly hacky
             int j = 0;
             for (int i : regions) {
@@ -362,39 +363,13 @@ public class RenderPipeline {
             addr += 16;
             new Vector4f(0, 0, 0, 1).getToAddress(addr); // Fog color
             addr += 16;
-            MemoryUtil.memPutLong(addr, sceneUniform.getDeviceAddress() + SCENE_SIZE);// Put in the location of the
-                                                                                      // region indexs
-            addr += 8;
-            MemoryUtil.memPutLong(
-                addr,
-                sectionManager.getRegionManager()
-                    .getRegionBufferAddress());
-            addr += 8;
-            MemoryUtil.memPutLong(
-                addr,
-                sectionManager.getRegionManager()
-                    .getSectionBufferAddress());
-            addr += 8;
-            MemoryUtil.memPutLong(addr, regionVisibility.getDeviceAddress());
-            addr += 8;
-            MemoryUtil.memPutLong(addr, sectionVisibility.getDeviceAddress());
-            addr += 8;
             MemoryUtil.memPutLong(addr, terrainCommandBuffer.getDeviceAddress());
             addr += 8;
             MemoryUtil.memPutLong(addr, translucencyCommandBuffer.getDeviceAddress());
             addr += 8;
-            MemoryUtil.memPutLong(addr, regionSortingList.getDeviceAddress());
-            addr += 8;
             MemoryUtil.memPutLong(addr, sectionManager.terrainAreana.buffer.getDeviceAddress());
             addr += 8;
             MemoryUtil.memPutLong(addr, sectionManager.translucencyIndexArena.buffer.getDeviceAddress());
-            addr += 8;
-            MemoryUtil.memPutLong(addr, this.transformationArray.getDeviceAddress());
-            addr += 8;
-            MemoryUtil.memPutLong(addr, this.originOffsetArray.getDeviceAddress());
-            addr += 8;
-            MemoryUtil.memPutLong(addr, statisticsBuffer == null ? 0 : statisticsBuffer.getDeviceAddress());// Logging
-                                                                                                            // buffer
             addr += 8;
             // Convert it into the expected size values and floats
             MemoryUtil.memPutFloat(addr, ((float) screenWidth) / 2);
@@ -450,6 +425,16 @@ public class RenderPipeline {
         glEnableClientState(GL_DRAW_INDIRECT_UNIFIED_NV);
         // Bind the uniform, it doesnt get wiped between shader changes
         glBufferAddressRangeNV(GL_UNIFORM_BUFFER_ADDRESS_NV, 0, sceneUniform.getDeviceAddress(), SCENE_SIZE);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, regionIndicies.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, sectionManager.getRegionManager().getRegionBufferId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, sectionManager.getRegionManager().getSectionBufferId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, regionVisibility.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, sectionVisibility.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, regionSortingList.getId());
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, transformationArray.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 12, originOffsetArray.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, statisticsBuffer.getId());
 
         if (prevRegionCount != 0) {
             glEnable(GL_DEPTH_TEST);
@@ -614,6 +599,7 @@ public class RenderPipeline {
         regionVisibilityTracking.delete();
 
         sceneUniform.delete();
+        regionIndicies.delete();
         regionVisibility.delete();
         sectionVisibility.delete();
         terrainCommandBuffer.delete();

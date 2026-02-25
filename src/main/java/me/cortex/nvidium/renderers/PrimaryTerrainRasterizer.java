@@ -3,10 +3,13 @@ package me.cortex.nvidium.renderers;
 import static me.cortex.nvidium.RenderPipeline.GL_DRAW_INDIRECT_ADDRESS_NV;
 import static me.cortex.nvidium.gl.shader.ShaderType.*;
 import static org.lwjgl.opengl.GL11C.*;
+import static org.lwjgl.opengl.GL30.glBindBufferBase;
 import static org.lwjgl.opengl.GL33.glGenSamplers;
+import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
 import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
 import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
 
+import me.cortex.nvidium.gl.buffers.Buffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
