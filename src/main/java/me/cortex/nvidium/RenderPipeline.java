@@ -216,6 +216,7 @@ public class RenderPipeline {
     }
 
     private int prevRegionCount;
+    private int prevPrevRegionCount;
     private int frameId;
     private boolean compiledForFog = false;
 
@@ -485,6 +486,7 @@ public class RenderPipeline {
             glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
             temporalRasterizer.raster(prevRegionCount, terrainCommandBuffer.getId());
         }
+        prevPrevRegionCount = prevRegionCount;
         prevRegionCount = visibleRegions;
 
 
@@ -562,7 +564,7 @@ public class RenderPipeline {
             Nvidium.Compat.enableBlend();
             Nvidium.Compat.blendFuncSeperate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE, ONE_MINUS_SRC_ALPHA);
             translucencyTerrainRasterizer
-                .raster(prevRegionCount, translucencyCommandBuffer.getDeviceAddress(), transluscentFrameTimeProfiler);
+                .raster(prevRegionCount, translucencyCommandBuffer.getId(), transluscentFrameTimeProfiler);
             Nvidium.Compat.disableBlend();
             Nvidium.Compat.blendFuncSeperate(770, 771, 1, 0);
             // glDisable(GL_DEPTH_TEST);
