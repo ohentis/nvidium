@@ -317,9 +317,7 @@ public class RegionManager {
         return this.regionBuffer.getId();
     }
 
-    public long getSectionBufferAddress() {
-        return this.sectionBuffer.getDeviceAddress();
-    }
+
 
     public int getSectionBufferId() {
         return this.sectionBuffer.getId();
