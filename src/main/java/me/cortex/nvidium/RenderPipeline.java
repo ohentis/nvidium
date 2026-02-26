@@ -14,6 +14,7 @@ import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDisableClientState;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnableClientState;
+import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL30C.GL_R8UI;
 import static org.lwjgl.opengl.GL30C.GL_RED_INTEGER;
 import static org.lwjgl.opengl.GL30C.glBindBufferBase;
@@ -121,7 +122,7 @@ public class RenderPipeline {
     private final SsboBuffer regionVisibility;
     private final SsboBuffer sectionVisibility;
     private final SsboBuffer terrainCommandBuffer;
-    private final IDeviceMappedBuffer translucencyCommandBuffer;
+    private final SsboBuffer translucencyCommandBuffer;
     private final SsboBuffer regionSortingList;
     private final SsboBuffer statisticsBuffer;
     private final SsboBuffer transformationArray;
@@ -168,7 +169,7 @@ public class RenderPipeline {
         regionVisibility = new SsboBuffer(maxRegions);
         sectionVisibility = new SsboBuffer(maxRegions * 256L);
         terrainCommandBuffer = new SsboBuffer(maxRegions * 8L);
-        translucencyCommandBuffer = device.createDeviceOnlyMappedBuffer(maxRegions * 8L);
+        translucencyCommandBuffer = new SsboBuffer(maxRegions * 8L);
         regionSortingList = new SsboBuffer(maxRegions * 2L);
         this.transformationArray = new SsboBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * (4 * 4 * 4));
         this.originOffsetArray = new SsboBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * 8);
@@ -363,8 +364,6 @@ public class RenderPipeline {
             addr += 16;
             new Vector4f(0, 0, 0, 1).getToAddress(addr); // Fog color
             addr += 16;
-            MemoryUtil.memPutLong(addr, translucencyCommandBuffer.getDeviceAddress());
-            addr += 8;
             // Convert it into the expected size values and floats
             MemoryUtil.memPutFloat(addr, ((float) screenWidth) / 2);
             addr += 4;
@@ -416,7 +415,6 @@ public class RenderPipeline {
         glEnableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);
         glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
         glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
-        glEnableClientState(GL_DRAW_INDIRECT_UNIFIED_NV);
         // Bind the uniform, it doesnt get wiped between shader changes
         glBufferAddressRangeNV(GL_UNIFORM_BUFFER_ADDRESS_NV, 0, sceneUniform.getDeviceAddress(), SCENE_SIZE);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, regionIndicies.getId());
@@ -424,6 +422,8 @@ public class RenderPipeline {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, sectionManager.getRegionManager().getSectionBufferId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, regionVisibility.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, sectionVisibility.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, terrainCommandBuffer.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, translucencyCommandBuffer.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, regionSortingList.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, sectionManager.terrainAreana.buffer.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, sectionManager.translucencyIndexArena.buffer.getId());
@@ -483,7 +483,7 @@ public class RenderPipeline {
         // Do temporal rasterization
         if (Nvidium.config.enable_temporal_coherence) {
             glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
-            temporalRasterizer.raster(prevRegionCount, terrainCommandBuffer.getId());
+            temporalRasterizer.raster(visibleRegions, terrainCommandBuffer.getId());
         }
         prevRegionCount = visibleRegions;
 
@@ -510,7 +510,6 @@ public class RenderPipeline {
         glDisableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);
         glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
         glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
-        glDisableClientState(GL_DRAW_INDIRECT_UNIFIED_NV);
         glDepthFunc(GL11C.GL_LEQUAL);
         // glDisable(GL_DEPTH_TEST);
 
@@ -552,7 +551,6 @@ public class RenderPipeline {
         glEnableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);
         glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
         glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
-        glEnableClientState(GL_DRAW_INDIRECT_UNIFIED_NV);
         // Need to rebind the uniform since it might have been wiped
         glBufferAddressRangeNV(GL_UNIFORM_BUFFER_ADDRESS_NV, 0, sceneUniform.getDeviceAddress(), SCENE_SIZE);
 
@@ -561,17 +559,18 @@ public class RenderPipeline {
             glEnable(GL_DEPTH_TEST);
             Nvidium.Compat.enableBlend();
             Nvidium.Compat.blendFuncSeperate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE, ONE_MINUS_SRC_ALPHA);
+
             translucencyTerrainRasterizer
-                .raster(prevRegionCount, translucencyCommandBuffer.getDeviceAddress(), transluscentFrameTimeProfiler);
+                .raster(prevRegionCount, translucencyCommandBuffer.getId(), transluscentFrameTimeProfiler);
             Nvidium.Compat.disableBlend();
             Nvidium.Compat.blendFuncSeperate(770, 771, 1, 0);
             // glDisable(GL_DEPTH_TEST);
+
         }
 
         glDisableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);
         glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
         glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
-        glDisableClientState(GL_DRAW_INDIRECT_UNIFIED_NV);
 
         // Download statistics
         if (Nvidium.config.statistics_level.ordinal() > StatisticsLoggingLevel.FRUSTUM.ordinal()) {

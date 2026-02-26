@@ -71,8 +71,6 @@ layout(std140, binding=0) uniform SceneData {
     //vec4  subChunkPosition;//The subChunkTranslation is already done inside the MVP
     //align(8)
     //Terrain command buffer, the first 4 bytes are actually the count
-    writeonly restrict uvec2 *translucencyCommandBuffer;
-
 
 
 
@@ -112,6 +110,9 @@ layout(std430, binding=5) restrict buffer SectionVisibility {
 };
 layout(std430, binding=6) writeonly restrict buffer TerrainCommandBuffer {
     uvec2 terrainCommandBuffer[];
+};
+layout(std430, binding=7) writeonly restrict buffer TranslucencyCommandBuffer {
+    uvec2 translucencyCommandBuffer[];
 };
 layout(std430, binding=8) readonly restrict buffer SortingRegionList {
     uint16_t sortingRegionList[];

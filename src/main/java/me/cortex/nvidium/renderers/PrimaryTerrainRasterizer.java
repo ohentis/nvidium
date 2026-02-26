@@ -15,6 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL12C;
+import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL45;
 import org.lwjgl.opengl.GL45C;
 
@@ -64,7 +65,14 @@ public class PrimaryTerrainRasterizer extends Phase {
 
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBufferId);
         frameTimeProfiler.startQuery();
+        int err;
+        if ((err = GL30C.glGetError()) != 0) {
+            throw new IllegalStateException("GLERROR: " + err);
+        }
         glMultiDrawMeshTasksIndirectNV(0, regionCount, 0);
+        if ((err = GL30C.glGetError()) != 0) {
+            throw new IllegalStateException("GLERROR: " + err);
+        }
         frameTimeProfiler.endQuery();
         //glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         GL45C.glBindSampler(0, 0);
