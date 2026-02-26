@@ -57,7 +57,7 @@ bool sectionEmpty(ivec4 header) {
 }
 
 
-layout(std140, binding=0) uniform SceneData {
+layout(std430, binding=0) readonly restrict buffer SceneData {
     //Need to basicly go in order of alignment
     //align(16)
     mat4 MVP;

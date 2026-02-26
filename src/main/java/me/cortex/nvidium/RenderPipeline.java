@@ -92,7 +92,7 @@ public class RenderPipeline {
     private TranslucentTerrainRasterizer translucencyTerrainRasterizer;
     private SortRegionSectionPhase regionSectionSorter;
 
-    private final IDeviceMappedBuffer sceneUniform;
+    private final SsboBuffer sceneUniform;
     private final SsboBuffer regionIndicies;
     private static final int SCENE_SIZE = (int) alignUp(4 * 4 * 4 + // mat4 MVP
         4 * 4 * 4 + // mat4 MVPInv (Optional)
@@ -164,7 +164,7 @@ public class RenderPipeline {
         int maxRegions = sectionManager.getRegionManager()
             .maxRegions();
 
-        sceneUniform = device.createDeviceOnlyMappedBuffer(SCENE_SIZE );
+        sceneUniform = new SsboBuffer(SCENE_SIZE );
         regionIndicies = new SsboBuffer(maxRegions * 2L);
         regionVisibility = new SsboBuffer(maxRegions);
         sectionVisibility = new SsboBuffer(maxRegions * 256L);
@@ -416,20 +416,7 @@ public class RenderPipeline {
         glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
         glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
         // Bind the uniform, it doesnt get wiped between shader changes
-        glBufferAddressRangeNV(GL_UNIFORM_BUFFER_ADDRESS_NV, 0, sceneUniform.getDeviceAddress(), SCENE_SIZE);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, regionIndicies.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, sectionManager.getRegionManager().getRegionBufferId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, sectionManager.getRegionManager().getSectionBufferId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, regionVisibility.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, sectionVisibility.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, terrainCommandBuffer.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, translucencyCommandBuffer.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, regionSortingList.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, sectionManager.terrainAreana.buffer.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, sectionManager.translucencyIndexArena.buffer.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, transformationArray.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 12, originOffsetArray.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, statisticsBuffer.getId());
+        bindBuffers();
 
         if (prevRegionCount != 0) {
             glEnable(GL_DEPTH_TEST);
@@ -552,8 +539,7 @@ public class RenderPipeline {
         glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
         glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
         // Need to rebind the uniform since it might have been wiped
-        glBufferAddressRangeNV(GL_UNIFORM_BUFFER_ADDRESS_NV, 0, sceneUniform.getDeviceAddress(), SCENE_SIZE);
-
+        bindBuffers();
         // Translucency sorting
         {
             glEnable(GL_DEPTH_TEST);
@@ -667,4 +653,21 @@ public class RenderPipeline {
         translucencyTerrainRasterizer = new TranslucentTerrainRasterizer();
         regionSectionSorter = new SortRegionSectionPhase();
     }
+    public void bindBuffers() {
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, sceneUniform.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, regionIndicies.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, sectionManager.getRegionManager().getRegionBufferId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, sectionManager.getRegionManager().getSectionBufferId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, regionVisibility.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, sectionVisibility.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, terrainCommandBuffer.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, translucencyCommandBuffer.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, regionSortingList.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, sectionManager.terrainAreana.buffer.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, sectionManager.translucencyIndexArena.buffer.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, transformationArray.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 12, originOffsetArray.getId());
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, statisticsBuffer.getId());
+    }
+
 }
