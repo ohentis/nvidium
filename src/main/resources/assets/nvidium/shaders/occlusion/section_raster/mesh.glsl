@@ -25,7 +25,7 @@ layout(triangles, max_vertices=8, max_primitives=12) out;
 struct Task { TASK_FIELDS };
 taskPayloadSharedEXT Task taskIn;
 #define _visOutBase taskIn._visOutBase
-#define _offset taskIn._offset;
+#define _offset taskIn._offset
 #define regionTransform taskIn._regionTransform
 #define chunkShift taskIn.chunkShift
 #else

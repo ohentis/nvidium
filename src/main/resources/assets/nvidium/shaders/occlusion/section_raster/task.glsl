@@ -21,7 +21,7 @@ layout(local_size_x=1) in;
 struct Task { TASK_FIELDS };
 taskPayloadSharedEXT Task taskOut;
 #define _visOutBase taskOut._visOutBase
-#define _offset taskOut._offset;
+#define _offset taskOut._offset
 #define regionTransform taskOut._regionTransform
 #define chunkShift taskOut.chunkShift
 #else
