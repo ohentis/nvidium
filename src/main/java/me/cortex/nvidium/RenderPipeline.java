@@ -44,6 +44,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.joml.Vector4i;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL30C;
 import org.lwjgl.system.MemoryUtil;
@@ -403,9 +404,7 @@ public class RenderPipeline {
             throw new IllegalStateException("GLERROR: " + err);
         }
 
-        glEnableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);
-        glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
-        glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+
         // Bind the uniform, it doesnt get wiped between shader changes
         bindBuffers();
 
@@ -426,7 +425,7 @@ public class RenderPipeline {
         if (DEBUG_RENDER_LEVEL != 1) {
             glColorMask(false, false, false, false);
         }
-        if (DEBUG_RENDER_LEVEL == 0) {
+        if (DEBUG_RENDER_LEVEL == 0 && GL.getCapabilities().GL_NV_representative_fragment_test) {
             glEnable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
         }
 
@@ -470,8 +469,9 @@ public class RenderPipeline {
         {// Do proper visibility tracking
             glDepthMask(false);
             glColorMask(false, false, false, false);
-            glEnable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
-
+            if(GL.getCapabilities().GL_NV_representative_fragment_test) {
+                glEnable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
+            }
             regionVisibilityTracking.computeVisibility(visibleRegions, regionVisibility, regionMap);
 
             glDisable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
@@ -485,9 +485,7 @@ public class RenderPipeline {
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         }
 
-        glDisableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);
-        glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
-        glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+
         glDepthFunc(GL11C.GL_LEQUAL);
         // glDisable(GL_DEPTH_TEST);
 
@@ -526,9 +524,7 @@ public class RenderPipeline {
     // Translucency is rendered in a very cursed and incorrect way
     // it hijacks the unassigned indirect command dispatch and uses that to dispatch the translucent chunks as well
     public void renderTranslucent() {
-        glEnableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);
-        glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
-        glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+
         // Need to rebind the uniform since it might have been wiped
         bindBuffers();
         // Translucency sorting
@@ -545,9 +541,7 @@ public class RenderPipeline {
 
         }
 
-        glDisableClientState(GL_UNIFORM_BUFFER_UNIFIED_NV);
-        glDisableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
-        glDisableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+
 
         // Download statistics
         if (Nvidium.config.statistics_level.ordinal() > StatisticsLoggingLevel.FRUSTUM.ordinal()) {

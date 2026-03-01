@@ -6,6 +6,7 @@ import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
 import static org.lwjgl.opengl.NVMeshShader.glDrawMeshTasksNV;
 
+import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.system.MemoryUtil;
@@ -46,7 +47,7 @@ public class RegionVisibilityTracker {
     public void computeVisibility(int regionCount, Buffer regionVisibilityBuffer, short[] regionMapping) {
         shader.bind();
         fram++;
-        glDrawMeshTasksNV(0, regionCount);
+        MeshShaderDispatcher.INSTANCE.drawMeshTasks(0, regionCount);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         downStream.download(regionVisibilityBuffer, 0, regionCount, ptr -> {
             for (int i = 0; i < regionMapping.length; i++) {

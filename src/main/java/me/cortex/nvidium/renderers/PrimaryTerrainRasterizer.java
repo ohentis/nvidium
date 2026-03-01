@@ -10,6 +10,7 @@ import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
 import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
 import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
 
+import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import me.cortex.nvidium.gl.buffers.Buffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
@@ -69,7 +70,7 @@ public class PrimaryTerrainRasterizer extends Phase {
         if ((err = GL30C.glGetError()) != 0) {
             throw new IllegalStateException("GLERROR: " + err);
         }
-        glMultiDrawMeshTasksIndirectNV(0, regionCount, 0);
+        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 0);
         if ((err = GL30C.glGetError()) != 0) {
             throw new IllegalStateException("GLERROR: " + err);
         }

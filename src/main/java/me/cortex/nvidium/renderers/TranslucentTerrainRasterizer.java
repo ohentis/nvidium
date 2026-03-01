@@ -10,6 +10,7 @@ import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
 import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
 import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
 
+import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
@@ -71,7 +72,7 @@ public class TranslucentTerrainRasterizer extends Phase {
         // the +8*6 is to offset to the unassigned dispatch
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBufferID);
         frameTimeProfiler.startQuery();
-        glMultiDrawMeshTasksIndirectNV(0, regionCount, 0);
+        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 0);
         frameTimeProfiler.endQuery();
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         GL45C.glBindSampler(0, 0);

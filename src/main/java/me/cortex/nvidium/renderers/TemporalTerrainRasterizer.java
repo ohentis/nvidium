@@ -10,6 +10,7 @@ import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
 import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
 import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
 
+import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
@@ -61,7 +62,7 @@ public class TemporalTerrainRasterizer extends Phase {
         GL45C.glBindSampler(1, lightSampler);
 
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBufferId);
-        glMultiDrawMeshTasksIndirectNV(0, regionCount, 0);
+        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 0);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 
         GL45C.glBindSampler(0, 0);
