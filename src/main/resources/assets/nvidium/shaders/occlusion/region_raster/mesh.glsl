@@ -57,7 +57,7 @@ void main() {
 
     int visibilityIndex = (int)gl_WorkGroupID.x;
     //If the region metadata was empty, return
-    if (data.a == uint64_t(-1)) {
+    if (data.a.x == uint(-1) && data.a.y == uint(-1)) {
         regionVisibility[visibilityIndex] = 0;
         #ifdef USE_GL_EXT_MESH_SHADERS
         SetMeshOutputsEXT(0,0);

@@ -1,5 +1,5 @@
 #ifndef SORTING_INDEX_TYPE
-#define SORTING_INDEX_TYPE uint8_t
+#define SORTING_INDEX_TYPE uint
 #endif
 
 shared float threadBufferFloat[SORTING_NETWORK_SIZE];

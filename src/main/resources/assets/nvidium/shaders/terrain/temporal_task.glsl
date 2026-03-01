@@ -24,8 +24,8 @@ layout(local_size_x=1) in;
 
 
 bool shouldRenderVisible(uint sectionId) {
-    uint8_t data = uint8_t(sectionVisibility[sectionId]);
-    return (data&uint8_t(3)) == uint8_t(1);//If the section was not visible last frame but is visible this frame, render it
+    uint data = (sectionVisibility[sectionId]);
+    return (data&3u) == 1;//If the section was not visible last frame but is visible this frame, render it
 }
 
 #import <nvidium:terrain/task_common.glsl>

@@ -23,8 +23,8 @@ out taskPayloadSharedEXT Task {
 #else
 taskNV out Task {
 #endif
-    uint32_t _visOutBase;// The base offset for the visibility output of the shader
-    uint32_t _offset;//start offset for regions (can/should probably be a uint16 since this is just the region id << 8)
+    uint _visOutBase;// The base offset for the visibility output of the shader
+    uint _offset;//start offset for regions (can/should probably be a uint16 since this is just the region id << 8)
     //uint64_t bitcheck[4];//TODO: MAYBE DO THIS, each bit is whether there a section at that index, doing so is faster than pulling metadata to check if a section is valid or not
     mat4 regionTransform;
     ivec3 chunkShift;
@@ -73,8 +73,8 @@ void main() {
     gl_TaskCountNV = count;
     #endif
 
-    terrainCommandBuffer[cmdIdx] = uvec2(uint32_t(count), _visOutBase);
+    terrainCommandBuffer[cmdIdx] = uvec2(uint(count), _visOutBase);
     //TODO: add a bit to the region header to determine whether or not a region has any translucent
     // sections, if it doesnt, write 0 to the command buffer
-    translucencyCommandBuffer[transCmdIdx] = uvec2(uint32_t(count), _visOutBase);
+    translucencyCommandBuffer[transCmdIdx] = uvec2(uint(count), _visOutBase);
 }

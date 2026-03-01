@@ -33,8 +33,8 @@ in taskPayloadSharedEXT Task {
 #else
 taskNV in Task {
 #endif
-    uint32_t _visOutBase;//Base output visibility index
-    uint32_t _offset;
+    uint _visOutBase;//Base output visibility index
+    uint _offset;
     mat4 regionTransform;
     ivec3 chunkShift;
 };
@@ -62,7 +62,7 @@ void emitParital(int visIndex) {
 void main() {
     int visibilityIndex = (int)(_visOutBase|gl_WorkGroupID.x);
 
-    uint8_t lastData = uint8_t(sectionVisibility[visibilityIndex]);
+    uint lastData = sectionVisibility[visibilityIndex];
     // this is almost 100% guarenteed not needed afaik
     //barrier();
 

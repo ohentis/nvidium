@@ -48,7 +48,7 @@ taskNV in Task {
     vec4 originAndBaseData;
     uint quadCount;
     #ifdef TRANSLUCENCY_SORTING_QUADS
-    uint8_t jiggle;
+    uint jiggle;
     #endif
     int translucencyIndex;
 };

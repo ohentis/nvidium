@@ -30,7 +30,7 @@ taskNV out Task {
     vec4 originAndBaseData;
     uint quadCount;
     #ifdef TRANSLUCENCY_SORTING_QUADS
-    uint8_t jiggle;
+    uint jiggle;
     #endif
     int translucencyIndex;
 };
@@ -80,7 +80,7 @@ void main() {
 
     quadCount = ((sectionData[sectionId].renderRanges.w>>16)&0xFFFF);
     #ifdef TRANSLUCENCY_SORTING_QUADS
-    jiggle = uint8_t(min(quadCount>>1,(uint(frameId)&1)));//Jiggle by 1 quads (either 0 or 1)//*15
+    jiggle = min(quadCount>>1,(frameId&1u));//Jiggle by 1 quads (either 0 or 1)//*15
     //jiggle = uint8_t(0);
     quadCount += jiggle;
     originAndBaseData.w = uintBitsToFloat(baseDataOffset - uint(jiggle));
