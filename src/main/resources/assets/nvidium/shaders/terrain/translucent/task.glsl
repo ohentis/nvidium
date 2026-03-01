@@ -3,9 +3,7 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#extension GL_NV_mesh_shader : require
-#extension GL_NV_gpu_shader5 : require
-#extension GL_NV_bindless_texture : require
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -19,18 +17,22 @@
 layout(local_size_x=1) in;
 
 //In here add an array that is then "logged" on in the mesh shader to find the draw data
+#ifdef USE_GL_EXT_MESH_SHADERS
+out taskPayloadSharedEXT Task {
+#else
 taskNV out Task {
+#endif
     vec4 originAndBaseData;
     uint quadCount;
     #ifdef TRANSLUCENCY_SORTING_QUADS
-    uint8_t jiggle;
+    uint jiggle;
     #endif
     int translucencyIndex;
 };
 
 bool shouldRender(uint sectionId) {
     //Check visibility
-    return (sectionVisibility[sectionId]&uint8_t(1)) != uint8_t(0);
+    return (sectionVisibility[sectionId]&1) != 0;
 }
 
 void main() {
@@ -52,14 +54,14 @@ void main() {
     if (!shouldRender(sectionId)) {
         //Early exit if the section isnt visible
         //TODO: also early exit if there are no translucents to render
-        gl_TaskCountNV = 0;
+        EMIT_MESH_TASKS(0,0,0);
         return;
     }
 
     translucencyIndex = sectionData[sectionId].translucencyDataIdx;
 
     ivec4 header = sectionData[sectionId].header;
-    uint baseDataOffset = (uint)header.w;
+    uint baseDataOffset = uint(header.w);
     ivec3 chunk = ivec3(header.xyz)>>8;
     chunk.y &= 0x1ff;
     chunk.y <<= 32-9;
@@ -69,7 +71,7 @@ void main() {
 
     quadCount = ((sectionData[sectionId].renderRanges.w>>16)&0xFFFF);
     #ifdef TRANSLUCENCY_SORTING_QUADS
-    jiggle = uint8_t(min(quadCount>>1,(uint(frameId)&1)));//Jiggle by 1 quads (either 0 or 1)//*15
+    jiggle = min(quadCount>>1,(frameId&1u));//Jiggle by 1 quads (either 0 or 1)//*15
     //jiggle = uint8_t(0);
     quadCount += jiggle;
     originAndBaseData.w = uintBitsToFloat(baseDataOffset - uint(jiggle));
@@ -78,7 +80,8 @@ void main() {
     #endif
 
     //Emit enough mesh shaders such that max(gl_GlobalInvocationID.x)>=quadCount
-    gl_TaskCountNV = (quadCount+MESH_WORKLOAD_PER_INVOCATION-1)/MESH_WORKLOAD_PER_INVOCATION;
+    uint mesh_count = (quadCount+MESH_WORKLOAD_PER_INVOCATION-1)/MESH_WORKLOAD_PER_INVOCATION;
+    EMIT_MESH_TASKS(mesh_count,1,1);
 
     #ifdef STATISTICS_QUADS
     atomicAdd(statistics_buffer+2, quadCount);

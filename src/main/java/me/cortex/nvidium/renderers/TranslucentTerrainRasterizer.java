@@ -1,12 +1,11 @@
 package me.cortex.nvidium.renderers;
 
-import static me.cortex.nvidium.RenderPipeline.GL_DRAW_INDIRECT_ADDRESS_NV;
 import static me.cortex.nvidium.gl.shader.ShaderType.*;
 import static org.lwjgl.opengl.GL11C.*;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_S;
+import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL33.glGenSamplers;
-import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
-import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
+import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
@@ -16,6 +15,7 @@ import org.lwjgl.opengl.GL45;
 import org.lwjgl.opengl.GL45C;
 
 import me.cortex.nvidium.Nvidium;
+import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import me.cortex.nvidium.gl.shader.Shader;
 import me.cortex.nvidium.mixin.minecraft.EntityRendererAccessor;
 import me.cortex.nvidium.sodiumCompat.ShaderLoader;
@@ -51,7 +51,7 @@ public class TranslucentTerrainRasterizer extends Phase {
 
     // Translucency is rendered in a very cursed and incorrect way
     // it hijacks the unassigned indirect command dispatch and uses that to dispatch the translucent chunks as well
-    public void raster(int regionCount, long commandAddr, FrameTimeProfiler frameTimeProfiler) {
+    public void raster(int regionCount, int commandBufferID, FrameTimeProfiler frameTimeProfiler) {
         shader.bind();
 
         int blockId = Minecraft.getMinecraft()
@@ -67,10 +67,11 @@ public class TranslucentTerrainRasterizer extends Phase {
         Nvidium.Compat.setTexture(lightId, 1);
 
         // the +8*6 is to offset to the unassigned dispatch
-        glBufferAddressRangeNV(GL_DRAW_INDIRECT_ADDRESS_NV, 0, commandAddr, regionCount * 8L);// Bind the command buffer
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBufferID);
         frameTimeProfiler.startQuery();
-        glMultiDrawMeshTasksIndirectNV(0, regionCount, 0);
+        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 0);
         frameTimeProfiler.endQuery();
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         GL45C.glBindSampler(0, 0);
         GL45C.glBindSampler(1, 0);
     }

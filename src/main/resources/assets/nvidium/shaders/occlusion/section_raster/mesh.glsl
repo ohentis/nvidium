@@ -3,9 +3,9 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#extension GL_NV_mesh_shader : require
-#extension GL_NV_gpu_shader5 : require
-#extension GL_NV_bindless_texture : require
+
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
+
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -17,9 +17,13 @@
 layout(local_size_x = 8) in;
 layout(triangles, max_vertices=8, max_primitives=12) out;
 
+#ifdef USE_GL_EXT_MESH_SHADERS
+in taskPayloadSharedEXT Task {
+#else
 taskNV in Task {
-    uint32_t _visOutBase;//Base output visibility index
-    uint32_t _offset;
+#endif
+    uint _visOutBase;//Base output visibility index
+    uint _offset;
     mat4 regionTransform;
     ivec3 chunkShift;
 };
@@ -32,22 +36,22 @@ const uint PILUTD[] = {1, 2, 0, 5, 5, 1, 7, 7};
 const uint PILUTE[] = {6, 2, 3, 7};
 
 void emitIndicies(int visIndex) {
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
-    gl_PrimitiveIndicesNV[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
-    gl_MeshPrimitivesNV[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|0u] = PILUTA[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|1u] = PILUTB[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
+    MESHPRIMITIVES[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
 }
 void emitParital(int visIndex) {
-    gl_PrimitiveIndicesNV[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
-    gl_MeshPrimitivesNV[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
+    MESHPRIMITIVES[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
 }
 
 //TODO: Check if the section can be culled via fog
 void main() {
-    int visibilityIndex = (int)(_visOutBase|gl_WorkGroupID.x);
+    int visibilityIndex = int(_visOutBase|gl_WorkGroupID.x);
 
-    uint8_t lastData = sectionVisibility[visibilityIndex];
+    uint lastData = sectionVisibility[visibilityIndex];
     // this is almost 100% guarenteed not needed afaik
     //barrier();
 
@@ -59,8 +63,8 @@ void main() {
     // to fix, also check that the ranges are null
     if (sectionEmpty(header) || (header.y&(1<<17)) != 0) {
         if (gl_LocalInvocationID.x == 0) {
-            sectionVisibility[visibilityIndex] = uint8_t(0);
-            gl_PrimitiveCountNV = 0;
+            sectionVisibility[visibilityIndex] = 0;
+            SET_MESH_OUTPUTS(0,0);
         }
         return;
     }
@@ -78,7 +82,7 @@ void main() {
 
     //TODO: try mix instead or something other than just ternaries, i think they get compiled to a cmov type instruction but not sure
     corner += vec3(((gl_LocalInvocationID.x&1)==0)?mins.x:maxs.x, ((gl_LocalInvocationID.x&4)==0)?mins.y:maxs.y, ((gl_LocalInvocationID.x&2)==0)?mins.z:maxs.z);
-    gl_MeshVerticesNV[gl_LocalInvocationID.x].gl_Position = (MVP*(regionTransform*vec4(corner, 1.0)));
+    MESHVERTICES[gl_LocalInvocationID.x].gl_Position = (MVP*(regionTransform*vec4(corner, 1.0)));
 
     int prim_payload = (visibilityIndex<<8)|int(((uint(lastData))<<1)&0xff)|1;
 
@@ -93,9 +97,8 @@ void main() {
         bool isInSection = all(lessThan(minPos, vec3(ADD_SIZE))) && all(lessThan(vec3(-ADD_SIZE), maxPos));
 
         //Shift and set, this gives us a bonus of having the last 8 frames as visibility history
-        sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(isInSection?1:0);//Inject visibility aswell
+        sectionVisibility[visibilityIndex] = uint(lastData<<1) | uint(isInSection?1:0);//Inject visibility aswell
         //sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(0);
-
-        gl_PrimitiveCountNV = 12;
+        SET_MESH_OUTPUTS(48,12);
     }
 }

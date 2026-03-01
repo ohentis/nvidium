@@ -6,11 +6,14 @@ import net.minecraft.util.ResourceLocation;
 
 import org.embeddedt.embeddium.impl.gl.shader.ShaderConstants;
 import org.embeddedt.embeddium.impl.gl.shader.ShaderParser;
+import org.lwjgl.opengl.GL;
 
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.config.StatisticsLoggingLevel;
 import me.cortex.nvidium.config.TranslucencySortingLevel;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
+@Lwjgl3Aware
 public class ShaderLoader {
 
     public static String parse(ResourceLocation path) {
@@ -49,6 +52,9 @@ public class ShaderLoader {
         }
         if (Nvidium.config.use_nv_fragment_shader_barycentric) {
             builder.add("USE_NV_FRAGMENT_SHADER_BARYCENTRIC");
+        }
+        if (GL.getCapabilities().GL_EXT_mesh_shader) {
+            builder.add("USE_GL_EXT_MESH_SHADERS");
         }
 
         builder.add("TEXTURE_MAX_SCALE", String.valueOf(NvidiumCompactChunkVertex.TEXTURE_MAX_VALUE));

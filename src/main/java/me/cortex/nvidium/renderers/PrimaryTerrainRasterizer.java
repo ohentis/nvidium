@@ -1,20 +1,21 @@
 package me.cortex.nvidium.renderers;
 
-import static me.cortex.nvidium.RenderPipeline.GL_DRAW_INDIRECT_ADDRESS_NV;
 import static me.cortex.nvidium.gl.shader.ShaderType.*;
 import static org.lwjgl.opengl.GL11C.*;
+import static org.lwjgl.opengl.GL15C.glBindBuffer;
 import static org.lwjgl.opengl.GL33.glGenSamplers;
-import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
-import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
+import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL12C;
+import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL45;
 import org.lwjgl.opengl.GL45C;
 
 import me.cortex.nvidium.Nvidium;
+import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import me.cortex.nvidium.gl.shader.Shader;
 import me.cortex.nvidium.mixin.minecraft.EntityRendererAccessor;
 import me.cortex.nvidium.sodiumCompat.ShaderLoader;
@@ -43,7 +44,7 @@ public class PrimaryTerrainRasterizer extends Phase {
         GL45C.glSamplerParameteri(lightSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 
-    public void raster(int regionCount, long commandAddr, FrameTimeProfiler frameTimeProfiler) {
+    public void raster(int regionCount, int commandBufferId, FrameTimeProfiler frameTimeProfiler) {
         shader.bind();
 
         int blockId = Minecraft.getMinecraft()
@@ -58,10 +59,18 @@ public class PrimaryTerrainRasterizer extends Phase {
         Nvidium.Compat.setTexture(blockId, 0);
         Nvidium.Compat.setTexture(lightId, 1);
 
-        glBufferAddressRangeNV(GL_DRAW_INDIRECT_ADDRESS_NV, 0, commandAddr, regionCount * 8L);// Bind the command buffer
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBufferId);
         frameTimeProfiler.startQuery();
-        glMultiDrawMeshTasksIndirectNV(0, regionCount, 0);
+        int err;
+        if ((err = GL30C.glGetError()) != 0) {
+            throw new IllegalStateException("GLERROR: " + err);
+        }
+        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 0);
+        if ((err = GL30C.glGetError()) != 0) {
+            throw new IllegalStateException("GLERROR: " + err);
+        }
         frameTimeProfiler.endQuery();
+        // glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         GL45C.glBindSampler(0, 0);
         GL45C.glBindSampler(1, 0);
     }

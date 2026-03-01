@@ -3,9 +3,7 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#extension GL_NV_mesh_shader : require
-#extension GL_NV_gpu_shader5 : require
-#extension GL_NV_bindless_texture : require
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -21,8 +19,8 @@ layout(local_size_x=1) in;
 
 
 bool shouldRenderVisible(uint sectionId) {
-    uint8_t data = sectionVisibility[sectionId];
-    return (data&uint8_t(3)) == uint8_t(1);//If the section was not visible last frame but is visible this frame, render it
+    uint data = (sectionVisibility[sectionId]);
+    return (data&3u) == 1;//If the section was not visible last frame but is visible this frame, render it
 }
 
 #import <nvidium:terrain/task_common.glsl>
@@ -32,7 +30,7 @@ void main() {
 
     if (!shouldRenderVisible(sectionId)) {
         //Early exit if the section isnt visible
-        gl_TaskCountNV = 0;
+        EMIT_MESH_TASKS(0,0,0);
         return;
     }
 
@@ -47,7 +45,7 @@ void main() {
     chunk -= unpackOriginOffsetId(transformationId);
 
     origin = vec3(chunk<<4);
-    baseOffset = (uint)header.w;
+    baseOffset = uint(header.w);
 
     populateTasks(chunk, uvec4(sectionData[sectionId].renderRanges));
 

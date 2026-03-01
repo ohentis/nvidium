@@ -3,9 +3,7 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#extension GL_NV_mesh_shader : require
-#extension GL_NV_gpu_shader5 : require
-#extension GL_NV_bindless_texture : require
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -15,10 +13,13 @@
 
 //This is 1 since each task shader workgroup -> multiple meshlets. its not each globalInvocation (afaik)
 layout(local_size_x=1) in;
-
+#ifdef USE_GL_EXT_MESH_SHADERS
+out taskPayloadSharedEXT Task {
+#else
 taskNV out Task {
-    uint32_t _visOutBase;// The base offset for the visibility output of the shader
-    uint32_t _offset;//start offset for regions (can/should probably be a uint16 since this is just the region id << 8)
+#endif
+    uint _visOutBase;// The base offset for the visibility output of the shader
+    uint _offset;//start offset for regions (can/should probably be a uint16 since this is just the region id << 8)
     //uint64_t bitcheck[4];//TODO: MAYBE DO THIS, each bit is whether there a section at that index, doing so is faster than pulling metadata to check if a section is valid or not
     mat4 regionTransform;
     ivec3 chunkShift;
@@ -35,10 +36,10 @@ void main() {
     uint transCmdIdx = (uint(regionCount) - gl_WorkGroupID.x) - 1;
 
     //Early exit if the region wasnt visible
-    if (regionVisibility[gl_WorkGroupID.x] == uint8_t(0)) {
+    if (regionVisibility[gl_WorkGroupID.x] == 0) {
         terrainCommandBuffer[cmdIdx] = uvec2(0);
         translucencyCommandBuffer[transCmdIdx] = uvec2(0);
-        gl_TaskCountNV = 0;
+        EMIT_MESH_TASKS(0,0,0);
         return;
     }
 
@@ -47,7 +48,7 @@ void main() {
     #endif
 
     //FIXME: It might actually be more efficent to just upload the region data straight into the ubo
-    uint32_t offset = regionIndicies[gl_WorkGroupID.x];
+    uint offset = uint(regionIndicies[gl_WorkGroupID.x]);
     Region data = regionData[offset];
     int count = unpackRegionCount(data)+1;
 
@@ -57,11 +58,10 @@ void main() {
     regionTransform = getRegionTransformation(data);
 
     chunkShift = (-chunkPosition.xyz) - unpackOriginOffsetId(unpackRegionTransformId(data));
+    EMIT_MESH_TASKS(count,1,1);
 
-    gl_TaskCountNV = count;
-
-    terrainCommandBuffer[cmdIdx] = uvec2(uint32_t(count), _visOutBase);
+    terrainCommandBuffer[cmdIdx] = uvec2(uint(count), _visOutBase);
     //TODO: add a bit to the region header to determine whether or not a region has any translucent
     // sections, if it doesnt, write 0 to the command buffer
-    translucencyCommandBuffer[transCmdIdx] = uvec2(uint32_t(count), _visOutBase);
+    translucencyCommandBuffer[transCmdIdx] = uvec2(uint(count), _visOutBase);
 }

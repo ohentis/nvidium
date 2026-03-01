@@ -3,9 +3,9 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#extension GL_NV_mesh_shader : require
-#extension GL_NV_gpu_shader5 : require
-#extension GL_NV_bindless_texture : require
+
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
+
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -27,11 +27,17 @@ layout(local_size_x = 32) in;
 layout(triangles, max_vertices=128, max_primitives=64) out;
 
 //originAndBaseData.w is in quad count space, so is endIdx
+#ifdef USE_GL_EXT_MESH_SHADERS
+in taskPayloadSharedEXT Task {
+#else
 taskNV in Task {
+#endif
+
+
     vec4 originAndBaseData;
     uint quadCount;
     #ifdef TRANSLUCENCY_SORTING_QUADS
-    uint8_t jiggle;
+    uint jiggle;
     #endif
     int translucencyIndex;
 };
@@ -49,19 +55,19 @@ layout(location=1) out Interpolants {
 void emitQuadIndicies() {
     uint primBase = gl_LocalInvocationID.x * 6;
     uint vertexBase = gl_LocalInvocationID.x<<2;
-    gl_PrimitiveIndicesNV[primBase+0] = vertexBase+0;
-    gl_PrimitiveIndicesNV[primBase+1] = vertexBase+1;
-    gl_PrimitiveIndicesNV[primBase+2] = vertexBase+2;
-    gl_PrimitiveIndicesNV[primBase+3] = vertexBase+2;
-    gl_PrimitiveIndicesNV[primBase+4] = vertexBase+3;
-    gl_PrimitiveIndicesNV[primBase+5] = vertexBase+0;
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+0] = vertexBase+0;
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+1] = vertexBase+1;
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+2] = vertexBase+2;
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+3] = vertexBase+2;
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+4] = vertexBase+3;
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+5] = vertexBase+0;
 }
 
 void emitVertex(uint vertexBaseId, uint innerId) {
     Vertex V = terrainData[vertexBaseId + innerId];
     uint outId = (gl_LocalInvocationID.x<<2)+innerId;
     vec3 pos = decodeVertexPosition(V)+originAndBaseData.xyz;
-    gl_MeshVerticesNV[outId].gl_Position = MVP*vec4(pos,1.0);
+    MESHVERTICES[outId].gl_Position = MVP*vec4(pos,1.0);
 
 #ifndef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
     #ifdef RENDER_FOG
@@ -180,10 +186,10 @@ void main() {
 
     //If we are at the start, dont want to render as it contains garbled data (out of bounds)
     if (gl_GlobalInvocationID.x < jiggle) {
-        gl_MeshVerticesNV[(gl_LocalInvocationID.x<<2)+0].gl_Position = vec4(1,1,1,-1);
-        gl_MeshVerticesNV[(gl_LocalInvocationID.x<<2)+1].gl_Position = vec4(1,1,1,-1);
-        gl_MeshVerticesNV[(gl_LocalInvocationID.x<<2)+2].gl_Position = vec4(1,1,1,-1);
-        gl_MeshVerticesNV[(gl_LocalInvocationID.x<<2)+3].gl_Position = vec4(1,1,1,-1);
+        MESHVERTICES[(gl_LocalInvocationID.x<<2)+0].gl_Position = vec4(1,1,1,-1);
+        MESHVERTICES[(gl_LocalInvocationID.x<<2)+1].gl_Position = vec4(1,1,1,-1);
+        MESHVERTICES[(gl_LocalInvocationID.x<<2)+2].gl_Position = vec4(1,1,1,-1);
+        MESHVERTICES[(gl_LocalInvocationID.x<<2)+3].gl_Position = vec4(1,1,1,-1);
 
     } else {
         emitVertex(id, 0);
@@ -198,12 +204,13 @@ void main() {
     emitVertex(id, 3);
     #endif
 
-    gl_MeshPrimitivesNV[(gl_LocalInvocationID.x<<1)].gl_PrimitiveID = int((id>>2)<<1)|0;
-    gl_MeshPrimitivesNV[(gl_LocalInvocationID.x<<1)|1].gl_PrimitiveID = int((id>>2)<<1)|1;
+    MESHPRIMITIVES[(gl_LocalInvocationID.x<<1)].gl_PrimitiveID = int((id>>2)<<1)|0;
+    MESHPRIMITIVES[(gl_LocalInvocationID.x<<1)|1].gl_PrimitiveID = int((id>>2)<<1)|1;
 
     if (gl_LocalInvocationID.x == 0) {
         //Remaining quads in workgroup
-        gl_PrimitiveCountNV = min(uint(int(quadCount)-int(gl_WorkGroupID.x<<5))<<1, 64);//2 primatives per quad
+        uint tris = min(uint(int(quadCount)-int(gl_WorkGroupID.x<<5))<<1, 64);//2 primatives per quad
+        SET_MESH_OUTPUTS(tris * 3, tris);
     }
 
 }

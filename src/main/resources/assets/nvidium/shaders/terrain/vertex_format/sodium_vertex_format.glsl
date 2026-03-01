@@ -10,7 +10,7 @@ const float VERTEX_SCALE = 32.0 / float(POSITION_MAX_COORD);
 const float VERTEX_OFFSET = -8.0;
 
 uvec3 _deinterleave_u20x3(Vertex v) {
-    return uvec3(v.x,v.y,v.z);
+    return uvec3(v.posa,v.posa >> 16u, v.posb) & 0xFFFFu;
 }
 
 vec3 decodeVertexPosition(Vertex v) {
@@ -18,11 +18,11 @@ vec3 decodeVertexPosition(Vertex v) {
 }
 
 vec2 decodeVertexRawUV(Vertex v) {
-    return vec2(v.u & TEXTURE_MAX_VALUE, v.v & TEXTURE_MAX_VALUE) / float(TEXTURE_MAX_COORD);
+    return vec2(v.uv & 0xFFFFu, v.uv >> 16u) / float(TEXTURE_MAX_COORD);
 }
 
 vec2 decodeVertexUVBias(Vertex v) {
-    return mix(vec2(-1.0), vec2(1.0), bvec2(uvec2(v.u, v.v) >> TEXTURE_BITS));
+    return mix(vec2(-1.0), vec2(1.0), bvec2( uvec2(v.uv & 0xFFFFu, v.uv >> 16u) >> TEXTURE_BITS));
 }
 
 vec2 decodeVertexUV(Vertex v) {
@@ -30,15 +30,15 @@ vec2 decodeVertexUV(Vertex v) {
 }
 
 vec2 decodeLightUV(Vertex v) {
-    return vec2(v.skyLight, v.blockLight)/256.0;
+    return vec2(v.light & 0xFFFFu, v.light >> 16u)/256.0;
 }
 
 bool hasMipping(Vertex v) {
-    return bool(int(v.material) & 1);
+    return bool(int(v.posb >> 16u) & 1);
 }
 
 uint rawVertexAlphaCutoff(Vertex v) {
-    return (int(v.material) >> 1) & 3;
+    return (int(v.posb >> 16u) >> 1) & 3;
 }
 
 vec4 decodeVertexColour(Vertex v) {
