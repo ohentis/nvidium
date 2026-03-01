@@ -4,13 +4,12 @@ import static me.cortex.nvidium.gl.shader.ShaderType.FRAGMENT;
 import static me.cortex.nvidium.gl.shader.ShaderType.MESH;
 import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
-import static org.lwjgl.opengl.NVMeshShader.glDrawMeshTasksNV;
 
-import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.system.MemoryUtil;
 
+import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import me.cortex.nvidium.gl.buffers.Buffer;
 import me.cortex.nvidium.gl.shader.Shader;
 import me.cortex.nvidium.sodiumCompat.ShaderLoader;
@@ -51,7 +50,7 @@ public class RegionVisibilityTracker {
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         downStream.download(regionVisibilityBuffer, 0, regionCount, ptr -> {
             for (int i = 0; i < regionMapping.length; i++) {
-                if (MemoryUtil.memGetInt(ptr + i*4L) == 1) {
+                if (MemoryUtil.memGetInt(ptr + i * 4L) == 1) {
                     // System.out.println(regionMapping[i] + " was visible");
                     frustum[regionMapping[i]]++;
                     visible[regionMapping[i]] = fram;

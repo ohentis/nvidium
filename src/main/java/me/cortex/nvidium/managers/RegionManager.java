@@ -4,14 +4,13 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-import me.cortex.nvidium.gl.buffers.SsboBuffer;
 import org.embeddedt.embeddium.impl.render.viewport.Viewport;
 import org.lwjgl.system.MemoryUtil;
 
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.gl.RenderDevice;
-import me.cortex.nvidium.gl.buffers.IDeviceMappedBuffer;
+import me.cortex.nvidium.gl.buffers.SsboBuffer;
 import me.cortex.nvidium.mojangCompat.ChunkSectionPos;
 import me.cortex.nvidium.util.IdProvider;
 import me.cortex.nvidium.util.UploadingBufferStream;
@@ -312,12 +311,9 @@ public class RegionManager {
             || (region.rz << 7 <= camZ && camZ <= ((region.rz + 1) << 7));
     }
 
-
     public int getRegionBufferId() {
         return this.regionBuffer.getId();
     }
-
-
 
     public int getSectionBufferId() {
         return this.sectionBuffer.getId();

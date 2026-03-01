@@ -1,15 +1,17 @@
 package me.cortex.nvidium.gl;
 
-import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
-import org.lwjgl.opengl.GL;
-
 import static org.lwjgl.opengl.EXTMeshShader.glDrawMeshTasksEXT;
 import static org.lwjgl.opengl.EXTMeshShader.glMultiDrawMeshTasksIndirectEXT;
 import static org.lwjgl.opengl.NVMeshShader.glDrawMeshTasksNV;
 import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
 
+import org.lwjgl.opengl.GL;
+
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+
 @Lwjgl3Aware
 public class MeshShaderDispatcher {
+
     public static final MeshShaderDispatcher INSTANCE = new MeshShaderDispatcher();
     private final boolean isEXT;
 
@@ -20,7 +22,7 @@ public class MeshShaderDispatcher {
 
     public void drawMeshTasks(int first, int count) {
         if (isEXT) {
-            glDrawMeshTasksEXT(count,1,1);
+            glDrawMeshTasksEXT(count, 1, 1);
         } else {
             glDrawMeshTasksNV(first, count);
         }

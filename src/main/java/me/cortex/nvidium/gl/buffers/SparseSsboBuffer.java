@@ -1,17 +1,18 @@
 package me.cortex.nvidium.gl.buffers;
 
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import me.cortex.nvidium.gl.GlObject;
-import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
-import org.lwjgl.opengl.ARBSparseBuffer;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL21;
-
 import static org.lwjgl.opengl.ARBSparseBuffer.GL_SPARSE_STORAGE_BIT_ARB;
 import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL44.GL_DYNAMIC_STORAGE_BIT;
 import static org.lwjgl.opengl.GL45.glCreateBuffers;
 import static org.lwjgl.opengl.GL45.glNamedBufferStorage;
+
+import org.lwjgl.opengl.ARBSparseBuffer;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL21;
+
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import me.cortex.nvidium.gl.GlObject;
+import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
 @Lwjgl3Aware
 public class SparseSsboBuffer extends GlObject implements Buffer {
@@ -36,7 +37,6 @@ public class SparseSsboBuffer extends GlObject implements Buffer {
         GL21.glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer);
         ARBSparseBuffer.glBufferPageCommitmentARB(GL15.GL_ARRAY_BUFFER, offset, size, commit);
     }
-
 
     private void allocatePages(int page, int pageCount) {
         doCommit(id, PAGE_SIZE * page, PAGE_SIZE * pageCount, true);

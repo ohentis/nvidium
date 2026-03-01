@@ -12,10 +12,7 @@ import static org.lwjgl.opengl.GL11.glColorMask;
 import static org.lwjgl.opengl.GL11.glDepthFunc;
 import static org.lwjgl.opengl.GL11.glDepthMask;
 import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glDisableClientState;
 import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glEnableClientState;
-import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL30C.GL_R8UI;
 import static org.lwjgl.opengl.GL30C.GL_RED_INTEGER;
 import static org.lwjgl.opengl.GL30C.glBindBufferBase;
@@ -24,14 +21,11 @@ import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
 import static org.lwjgl.opengl.GL45.nglClearNamedBufferData;
 import static org.lwjgl.opengl.GL45.nglClearNamedBufferSubData;
 import static org.lwjgl.opengl.NVRepresentativeFragmentTest.GL_REPRESENTATIVE_FRAGMENT_TEST_NV;
-import static org.lwjgl.opengl.NVUniformBufferUnifiedMemory.GL_UNIFORM_BUFFER_ADDRESS_NV;
-import static org.lwjgl.opengl.NVUniformBufferUnifiedMemory.GL_UNIFORM_BUFFER_UNIFIED_NV;
 import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.*;
 
 import java.util.BitSet;
 import java.util.List;
 
-import me.cortex.nvidium.gl.buffers.SsboBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.util.Util;
@@ -56,7 +50,7 @@ import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import me.cortex.nvidium.config.StatisticsLoggingLevel;
 import me.cortex.nvidium.config.TranslucencySortingLevel;
 import me.cortex.nvidium.gl.RenderDevice;
-import me.cortex.nvidium.gl.buffers.IDeviceMappedBuffer;
+import me.cortex.nvidium.gl.buffers.SsboBuffer;
 import me.cortex.nvidium.managers.RegionManager;
 import me.cortex.nvidium.managers.RegionVisibilityTracker;
 import me.cortex.nvidium.managers.SectionManager;
@@ -156,7 +150,7 @@ public class RenderPipeline {
         int maxRegions = sectionManager.getRegionManager()
             .maxRegions();
 
-        sceneUniform = new SsboBuffer(SCENE_SIZE );
+        sceneUniform = new SsboBuffer(SCENE_SIZE);
         regionIndicies = new SsboBuffer(maxRegions * 4L);
         regionVisibility = new SsboBuffer(maxRegions * 4L);
         sectionVisibility = new SsboBuffer(maxRegions * 1024L);
@@ -377,7 +371,7 @@ public class RenderPipeline {
             addr += 4;
             MemoryUtil.memPutInt(addr, visibleRegions);
             addr += 4;
-            MemoryUtil.memPutInt(addr,frameId++);
+            MemoryUtil.memPutInt(addr, frameId++);
         }
 
         if (Nvidium.config.translucency_sorting_level == TranslucencySortingLevel.NONE) {
@@ -389,7 +383,7 @@ public class RenderPipeline {
         if (regionSortSize != 0) {
             long regionSortUpload = uploadStream.upload(regionSortingList, 0, regionSortSize * 4L);
             for (int region : regionsToSort) {
-                MemoryUtil.memPutInt(regionSortUpload,  region);
+                MemoryUtil.memPutInt(regionSortUpload, region);
                 regionSortUpload += 4;
             }
             regionsToSort.clear();
@@ -404,14 +398,12 @@ public class RenderPipeline {
             throw new IllegalStateException("GLERROR: " + err);
         }
 
-
         // Bind the uniform, it doesnt get wiped between shader changes
         bindBuffers();
 
         if (prevRegionCount != 0) {
             glEnable(GL_DEPTH_TEST);
-            terrainRasterizer
-                .raster(prevRegionCount, terrainCommandBuffer.getId(), primaryFrameTimeProfiler);
+            terrainRasterizer.raster(prevRegionCount, terrainCommandBuffer.getId(), primaryFrameTimeProfiler);
             glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
         }
 
@@ -455,8 +447,6 @@ public class RenderPipeline {
         // glMemoryBarrier(GL_SHADER_GLOBAL_ACCESS_BARRIER_BIT_NV);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-
-
         // Do temporal rasterization
         if (Nvidium.config.enable_temporal_coherence) {
             glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
@@ -464,12 +454,10 @@ public class RenderPipeline {
         }
         prevRegionCount = visibleRegions;
 
-
-
         {// Do proper visibility tracking
             glDepthMask(false);
             glColorMask(false, false, false, false);
-            if(GL.getCapabilities().GL_NV_representative_fragment_test) {
+            if (GL.getCapabilities().GL_NV_representative_fragment_test) {
                 glEnable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
             }
             regionVisibilityTracking.computeVisibility(visibleRegions, regionVisibility, regionMap);
@@ -484,7 +472,6 @@ public class RenderPipeline {
             regionSectionSorter.dispatch(regionSortSize);
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         }
-
 
         glDepthFunc(GL11C.GL_LEQUAL);
         // glDisable(GL_DEPTH_TEST);
@@ -540,8 +527,6 @@ public class RenderPipeline {
             // glDisable(GL_DEPTH_TEST);
 
         }
-
-
 
         // Download statistics
         if (Nvidium.config.statistics_level.ordinal() > StatisticsLoggingLevel.FRUSTUM.ordinal()) {
@@ -638,11 +623,20 @@ public class RenderPipeline {
         translucencyTerrainRasterizer = new TranslucentTerrainRasterizer();
         regionSectionSorter = new SortRegionSectionPhase();
     }
+
     public void bindBuffers() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, sceneUniform.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, regionIndicies.getId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, sectionManager.getRegionManager().getRegionBufferId());
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, sectionManager.getRegionManager().getSectionBufferId());
+        glBindBufferBase(
+            GL_SHADER_STORAGE_BUFFER,
+            2,
+            sectionManager.getRegionManager()
+                .getRegionBufferId());
+        glBindBufferBase(
+            GL_SHADER_STORAGE_BUFFER,
+            3,
+            sectionManager.getRegionManager()
+                .getSectionBufferId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, regionVisibility.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, sectionVisibility.getId());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, terrainCommandBuffer.getId());

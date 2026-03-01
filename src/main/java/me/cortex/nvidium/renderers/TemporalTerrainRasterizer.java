@@ -1,16 +1,12 @@
 package me.cortex.nvidium.renderers;
 
-import static me.cortex.nvidium.RenderPipeline.GL_DRAW_INDIRECT_ADDRESS_NV;
 import static me.cortex.nvidium.gl.shader.ShaderType.*;
 import static org.lwjgl.opengl.GL11C.*;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL15C.glBindBuffer;
 import static org.lwjgl.opengl.GL33.glGenSamplers;
 import static org.lwjgl.opengl.GL40.GL_DRAW_INDIRECT_BUFFER;
-import static org.lwjgl.opengl.NVMeshShader.glMultiDrawMeshTasksIndirectNV;
-import static org.lwjgl.opengl.NVVertexBufferUnifiedMemory.glBufferAddressRangeNV;
 
-import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
@@ -18,6 +14,7 @@ import org.lwjgl.opengl.GL12C;
 import org.lwjgl.opengl.GL45;
 import org.lwjgl.opengl.GL45C;
 
+import me.cortex.nvidium.gl.MeshShaderDispatcher;
 import me.cortex.nvidium.gl.shader.Shader;
 import me.cortex.nvidium.mixin.minecraft.EntityRendererAccessor;
 import me.cortex.nvidium.sodiumCompat.ShaderLoader;

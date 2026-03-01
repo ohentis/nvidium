@@ -3,8 +3,6 @@ package me.cortex.nvidium.util;
 import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.gl.RenderDevice;
 import me.cortex.nvidium.gl.buffers.Buffer;
-import me.cortex.nvidium.gl.buffers.IDeviceMappedBuffer;
-import me.cortex.nvidium.gl.buffers.SparseSsboBuffer;
 import me.cortex.nvidium.gl.buffers.SparseSsboBuffer;
 import me.cortex.nvidium.gl.buffers.SsboBuffer;
 
