@@ -4,17 +4,7 @@
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
 
-#ifdef USE_GL_EXT_MESH_SHADERS
-#extension GL_EXT_mesh_shader : require
-#define MESHVERTICES gl_MeshVerticiesEXT
-#define MESHPRIMITIVES gl_MeshPrimitivesEXT
-#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveTriangleIndicesEXT
-#else
-#extension GL_NV_mesh_shader : require
-#define MESHVERTICES gl_MeshVerticesNV
-#define MESHPRIMITIVES gl_MeshPrimitivesNV
-#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveIndicesNV
-#endif
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 
 #extension GL_KHR_shader_subgroup_basic : require
@@ -220,11 +210,7 @@ void main() {
     if (gl_LocalInvocationID.x == 0) {
         //Remaining quads in workgroup
         uint tris = min(uint(int(quadCount)-int(gl_WorkGroupID.x<<5))<<1, 64);//2 primatives per quad
-        #ifdef USE_GL_EXT_MESH_SHADERS
-        SetMeshOutputsEXT(tris * 3, tris);
-        #else
-        gl_PrimitiveCountNV = tris;
-        #endif
+        SET_MESH_OUTPUTS(tris * 3, tris);
     }
 
 }

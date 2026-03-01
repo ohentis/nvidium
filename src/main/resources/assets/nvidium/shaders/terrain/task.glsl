@@ -3,11 +3,7 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#ifdef USE_GL_EXT_MESH_SHADERS
-#extension GL_EXT_mesh_shader : require
-#else
-#extension GL_NV_mesh_shader : require
-#endif
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -30,11 +26,7 @@ void main() {
 
     if (!shouldRenderVisible(sectionId)) {
         //Early exit if the section isnt visible
-        #ifdef USE_GL_EXT_MESH_SHADERS
-        EmitMeshTasksEXT(0,0,0);
-        #else
-        gl_TaskCountNV = 0;
-        #endif
+        EMIT_MESH_TASKS(0,0,0);
         return;
     }
 

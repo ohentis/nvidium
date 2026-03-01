@@ -4,18 +4,7 @@
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
 
-#ifdef USE_GL_EXT_MESH_SHADERS
-#extension GL_EXT_mesh_shader : require
-#define MESHVERTICES gl_MeshVerticesEXT
-#define MESHPRIMITIVES gl_MeshPrimitivesEXT
-#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveTriangleIndicesEXT
-#else
-#extension GL_NV_mesh_shader : require
-#define MESHVERTICES gl_MeshVerticesNV
-#define MESHPRIMITIVES gl_MeshPrimitivesNV
-#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveIndicesNV
-#endif
-
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 #extension GL_KHR_shader_subgroup_arithmetic: require
 #extension GL_KHR_shader_subgroup_basic : require
@@ -117,11 +106,7 @@ void putVertex(uint id, Vertex V) {
 
 void main() {
     if (gl_LocalInvocationIndex == 0) {
-        #ifdef USE_GL_EXT_MESH_SHADERS
-        SetMeshOutputsEXT(0,0);//Set the prim count to 0
-        #else
-        gl_PrimitiveCountNV = 0;
-        #endif
+        SET_MESH_OUTPUTS(0,0);
     }
 
     uint quadId = getOffset();
@@ -203,10 +188,6 @@ void main() {
     }
 
     if (subgroupElect()) {
-        #ifdef USE_GL_EXT_MESH_SHADERS
-        SetMeshOutputsEXT(totalTris * 3, totalTris);
-        #else
-        gl_PrimitiveCountNV = totalTris;
-        #endif
+        SET_MESH_OUTPUTS(totalTris * 3, totalTris);
     }
 }

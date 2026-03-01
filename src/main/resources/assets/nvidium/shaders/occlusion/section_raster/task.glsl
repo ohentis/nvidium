@@ -3,11 +3,7 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#ifdef USE_GL_EXT_MESH_SHADERS
-#extension GL_EXT_mesh_shader : require
-#else
-#extension GL_NV_mesh_shader : require
-#endif
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -43,11 +39,7 @@ void main() {
     if (regionVisibility[gl_WorkGroupID.x] == 0) {
         terrainCommandBuffer[cmdIdx] = uvec2(0);
         translucencyCommandBuffer[transCmdIdx] = uvec2(0);
-        #ifdef USE_GL_EXT_MESH_SHADERS
-        EmitMeshTasksEXT(0,0,0);
-        #else
-        gl_TaskCountNV = 0;
-        #endif
+        EMIT_MESH_TASKS(0,0,0);
         return;
     }
 
@@ -66,11 +58,7 @@ void main() {
     regionTransform = getRegionTransformation(data);
 
     chunkShift = (-chunkPosition.xyz) - unpackOriginOffsetId(unpackRegionTransformId(data));
-    #ifdef USE_GL_EXT_MESH_SHADERS
-    EmitMeshTasksEXT(count,1,1);
-    #else
-    gl_TaskCountNV = count;
-    #endif
+    EMIT_MESH_TASKS(count,1,1);
 
     terrainCommandBuffer[cmdIdx] = uvec2(uint(count), _visOutBase);
     //TODO: add a bit to the region header to determine whether or not a region has any translucent

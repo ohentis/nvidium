@@ -3,17 +3,7 @@
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
 
-#ifdef USE_GL_EXT_MESH_SHADERS
-#extension GL_EXT_mesh_shader : require
-#define MESHVERTICES gl_MeshVerticesEXT
-#define MESHPRIMITIVES gl_MeshPrimitivesEXT
-#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveTriangleIndicesEXT
-#else
-#extension GL_NV_mesh_shader : require
-#define MESHVERTICES gl_MeshVerticesNV
-#define MESHPRIMITIVES gl_MeshPrimitivesNV
-#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveIndicesNV
-#endif
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 
 
@@ -42,11 +32,7 @@ void emitIndicies(int visIndex) {
 void emitParital(int visIndex) {
     MESH_PRIMITIVE_TRIANGLE_INDICIES[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
     MESHPRIMITIVES[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
-    #ifdef USE_GL_EXT_MESH_SHADERS
-    SetMeshOutputsEXT(48,12);
-    #else
-    gl_PrimitiveCountNV = 12;
-    #endif
+    SET_MESH_OUTPUTS(48,12);
 }
 
 void main() {
@@ -58,11 +44,7 @@ void main() {
     //If the region metadata was empty, return
     if (data.a.x == uint(-1) && data.a.y == uint(-1)) {
         regionVisibility[visibilityIndex] = 0;
-        #ifdef USE_GL_EXT_MESH_SHADERS
-        SetMeshOutputsEXT(0,0);
-        #else
-        gl_PrimitiveCountNV = 0;
-        #endif
+        SET_MESH_OUTPUTS(0,0);
         return;
     }
 

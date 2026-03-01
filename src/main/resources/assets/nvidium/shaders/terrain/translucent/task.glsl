@@ -3,11 +3,7 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#ifdef USE_GL_EXT_MESH_SHADERS
-#extension GL_EXT_mesh_shader : require
-#else
-#extension GL_NV_mesh_shader : require
-#endif
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -58,11 +54,7 @@ void main() {
     if (!shouldRender(sectionId)) {
         //Early exit if the section isnt visible
         //TODO: also early exit if there are no translucents to render
-        #ifdef USE_GL_EXT_MESH_SHADERS
-        EmitMeshTasksEXT(0,0,0);
-        #else
-        gl_TaskCountNV = 0;
-        #endif
+        EMIT_MESH_TASKS(0,0,0);
         return;
     }
 
@@ -89,11 +81,7 @@ void main() {
 
     //Emit enough mesh shaders such that max(gl_GlobalInvocationID.x)>=quadCount
     uint mesh_count = (quadCount+MESH_WORKLOAD_PER_INVOCATION-1)/MESH_WORKLOAD_PER_INVOCATION;
-    #ifdef USE_GL_EXT_MESH_SHADERS
-    EmitMeshTasksEXT(mesh_count,1,1);
-    #else
-    gl_TaskCountNV = mesh_count;
-    #endif
+    EMIT_MESH_TASKS(mesh_count,1,1);
 
     #ifdef STATISTICS_QUADS
     atomicAdd(statistics_buffer+2, quadCount);

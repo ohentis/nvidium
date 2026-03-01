@@ -4,17 +4,7 @@
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
 
-#ifdef USE_GL_EXT_MESH_SHADERS
-#extension GL_EXT_mesh_shader : require
-#define MESHVERTICES gl_MeshVerticesEXT
-#define MESHPRIMITIVES gl_MeshPrimitivesEXT
-#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveTriangleIndicesEXT
-#else
-#extension GL_NV_mesh_shader : require
-#define MESHVERTICES gl_MeshVerticesNV
-#define MESHPRIMITIVES gl_MeshPrimitivesNV
-#define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveIndicesNV
-#endif
+#import <nvidium:occlusion/mesh_ext_calls.glsl>
 
 
 #extension GL_KHR_shader_subgroup_basic : require
@@ -74,11 +64,7 @@ void main() {
     if (sectionEmpty(header) || (header.y&(1<<17)) != 0) {
         if (gl_LocalInvocationID.x == 0) {
             sectionVisibility[visibilityIndex] = 0;
-            #ifdef USE_GL_EXT_MESH_SHADERS
-            SetMeshOutputsEXT(0,0);
-            #else
-            gl_PrimitiveCountNV = 0;
-            #endif
+            SET_MESH_OUTPUTS(0,0);
         }
         return;
     }
@@ -113,10 +99,6 @@ void main() {
         //Shift and set, this gives us a bonus of having the last 8 frames as visibility history
         sectionVisibility[visibilityIndex] = uint(lastData<<1) | uint(isInSection?1:0);//Inject visibility aswell
         //sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(0);
-        #ifdef USE_GL_EXT_MESH_SHADERS
-        SetMeshOutputsEXT(48,12);
-        #else
-        gl_PrimitiveCountNV = 12;
-        #endif
+        SET_MESH_OUTPUTS(48,12);
     }
 }
