@@ -37,7 +37,7 @@ taskNV out Task {
 
 bool shouldRender(uint sectionId) {
     //Check visibility
-    return (sectionVisibility[sectionId]&uint8_t(1)) != uint8_t(0);
+    return (sectionVisibility[sectionId]&1) != 0;
 }
 
 void main() {

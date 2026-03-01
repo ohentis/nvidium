@@ -41,7 +41,7 @@ void main() {
     uint transCmdIdx = (uint(regionCount) - gl_WorkGroupID.x) - 1;
 
     //Early exit if the region wasnt visible
-    if (regionVisibility[gl_WorkGroupID.x] == uint8_t(0)) {
+    if (regionVisibility[gl_WorkGroupID.x] == 0) {
         terrainCommandBuffer[cmdIdx] = uvec2(0);
         translucencyCommandBuffer[transCmdIdx] = uvec2(0);
         #ifdef USE_GL_EXT_MESH_SHADERS
@@ -57,7 +57,7 @@ void main() {
     #endif
 
     //FIXME: It might actually be more efficent to just upload the region data straight into the ubo
-    uint32_t offset = regionIndicies[gl_WorkGroupID.x];
+    uint offset = uint(regionIndicies[gl_WorkGroupID.x]);
     Region data = regionData[offset];
     int count = unpackRegionCount(data)+1;
 

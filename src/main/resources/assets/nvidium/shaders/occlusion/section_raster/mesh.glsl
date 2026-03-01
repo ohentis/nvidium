@@ -62,7 +62,7 @@ void emitParital(int visIndex) {
 void main() {
     int visibilityIndex = (int)(_visOutBase|gl_WorkGroupID.x);
 
-    uint8_t lastData = sectionVisibility[visibilityIndex];
+    uint8_t lastData = uint8_t(sectionVisibility[visibilityIndex]);
     // this is almost 100% guarenteed not needed afaik
     //barrier();
 
@@ -74,7 +74,7 @@ void main() {
     // to fix, also check that the ranges are null
     if (sectionEmpty(header) || (header.y&(1<<17)) != 0) {
         if (gl_LocalInvocationID.x == 0) {
-            sectionVisibility[visibilityIndex] = uint8_t(0);
+            sectionVisibility[visibilityIndex] = 0;
             #ifdef USE_GL_EXT_MESH_SHADERS
             SetMeshOutputsEXT(0,0);
             #else
@@ -112,7 +112,7 @@ void main() {
         bool isInSection = all(lessThan(minPos, vec3(ADD_SIZE))) && all(lessThan(vec3(-ADD_SIZE), maxPos));
 
         //Shift and set, this gives us a bonus of having the last 8 frames as visibility history
-        sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(isInSection?1:0);//Inject visibility aswell
+        sectionVisibility[visibilityIndex] = uint(lastData<<1) | uint(isInSection?1:0);//Inject visibility aswell
         //sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(0);
         #ifdef USE_GL_EXT_MESH_SHADERS
         SetMeshOutputsEXT(48,12);

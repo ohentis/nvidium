@@ -50,7 +50,7 @@ public class RegionVisibilityTracker {
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         downStream.download(regionVisibilityBuffer, 0, regionCount, ptr -> {
             for (int i = 0; i < regionMapping.length; i++) {
-                if (MemoryUtil.memGetByte(ptr + i) == 1) {
+                if (MemoryUtil.memGetInt(ptr + i*4L) == 1) {
                     // System.out.println(regionMapping[i] + " was visible");
                     frustum[regionMapping[i]]++;
                     visible[regionMapping[i]] = fram;

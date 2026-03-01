@@ -7,6 +7,7 @@ import static org.lwjgl.opengl.ARBShaderImageLoadStore.glMemoryBarrier;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_LEQUAL;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glColorMask;
 import static org.lwjgl.opengl.GL11.glDepthFunc;
 import static org.lwjgl.opengl.GL11.glDepthMask;
@@ -99,24 +100,14 @@ public class RenderPipeline {
         4 * 4 + // ivec4 chunkPosition
         4 * 4 + // vec4 subchunkOffset
         4 * 4 + // vec4 fogColour
-        8 + // Region *regionData
-        8 + // Section *sectionData
-        8 + // uint8_t *sectionVisibility
-        8 + // uvec2 *terrainCommandBuffer
-        8 + // uvec2 *translucencyCommandBuffer
-        8 + // Vertex *terrainData
-        8 + // uint *translucencyIndexData TODO
-        8 + // mat4 *transformationArray
-        8 + // uint64_t *originArray
-        8 + // uint32_t *statistics_buffe
         4 * 2 + // vec2 screenSize
         4 * 2 + // vec2 texCoordShrink
         4 + // float fogStart
         4 + // float fogEnd
         4 + // bool isCylindricalFog
         4 + // uint flags
-        2 + // uint16_t regionCount
-        1 // uint8_t frameId
+        4 + // uint16_t regionCount
+        4 // uint8_t frameId
         , 2);
 
     private final SsboBuffer regionVisibility;
@@ -166,11 +157,11 @@ public class RenderPipeline {
 
         sceneUniform = new SsboBuffer(SCENE_SIZE );
         regionIndicies = new SsboBuffer(maxRegions * 2L);
-        regionVisibility = new SsboBuffer(maxRegions);
-        sectionVisibility = new SsboBuffer(maxRegions * 256L);
+        regionVisibility = new SsboBuffer(maxRegions * 4L);
+        sectionVisibility = new SsboBuffer(maxRegions * 1024L);
         terrainCommandBuffer = new SsboBuffer(maxRegions * 8L);
         translucencyCommandBuffer = new SsboBuffer(maxRegions * 8L);
-        regionSortingList = new SsboBuffer(maxRegions * 2L);
+        regionSortingList = new SsboBuffer(maxRegions * 4L);
         this.transformationArray = new SsboBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * (4 * 4 * 4));
         this.originOffsetArray = new SsboBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * 8);
 
@@ -313,10 +304,10 @@ public class RenderPipeline {
                             nglClearNamedBufferSubData(
                                 sectionVisibility.getId(),
                                 GL_R8UI,
-                                (long) i << 8,
-                                255,
+                                (long) i << 10,
+                                1024,
                                 GL_RED_INTEGER,
-                                GL_UNSIGNED_BYTE,
+                                GL_UNSIGNED_INT,
                                 0);
                         }
                     }
@@ -383,9 +374,9 @@ public class RenderPipeline {
             flags |= Nvidium.Compat.getUseBlockFaceCulling() ? 1 : 0;
             MemoryUtil.memPutInt(addr, flags);// Flags
             addr += 4;
-            MemoryUtil.memPutShort(addr, (short) visibleRegions);
-            addr += 2;
-            MemoryUtil.memPutByte(addr, (byte) (frameId++));
+            MemoryUtil.memPutInt(addr, visibleRegions);
+            addr += 4;
+            MemoryUtil.memPutInt(addr,frameId++);
         }
 
         if (Nvidium.config.translucency_sorting_level == TranslucencySortingLevel.NONE) {
@@ -395,10 +386,10 @@ public class RenderPipeline {
         int regionSortSize = this.regionsToSort.size();
 
         if (regionSortSize != 0) {
-            long regionSortUpload = uploadStream.upload(regionSortingList, 0, regionSortSize * 2);
+            long regionSortUpload = uploadStream.upload(regionSortingList, 0, regionSortSize * 4L);
             for (int region : regionsToSort) {
-                MemoryUtil.memPutShort(regionSortUpload, (short) region);
-                regionSortUpload += 2;
+                MemoryUtil.memPutInt(regionSortUpload,  region);
+                regionSortUpload += 4;
             }
             regionsToSort.clear();
         }

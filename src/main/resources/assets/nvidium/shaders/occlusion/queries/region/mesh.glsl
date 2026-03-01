@@ -74,7 +74,7 @@ void main() {
 
     int visibilityIndex = (int)gl_WorkGroupID.x;
 
-    regionVisibility[visibilityIndex] = uint8_t(0);
+    regionVisibility[visibilityIndex] = 0;
 
     emitIndicies(visibilityIndex);
     if (gl_LocalInvocationID.x < 4) {

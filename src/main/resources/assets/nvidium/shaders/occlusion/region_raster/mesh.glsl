@@ -58,7 +58,7 @@ void main() {
     int visibilityIndex = (int)gl_WorkGroupID.x;
     //If the region metadata was empty, return
     if (data.a == uint64_t(-1)) {
-        regionVisibility[visibilityIndex] = uint8_t(0);
+        regionVisibility[visibilityIndex] = 0;
         #ifdef USE_GL_EXT_MESH_SHADERS
         SetMeshOutputsEXT(0,0);
         #else
@@ -91,7 +91,7 @@ void main() {
 
         if (gl_LocalInvocationID.x == 0) {
             bool cameraInRegion = all(lessThan(start*16+subchunkOffset.xyz, vec3(ADD_SIZE*16))) && all(lessThan(vec3(-ADD_SIZE*16), end*16+subchunkOffset.xyz));
-            regionVisibility[visibilityIndex] = cameraInRegion?uint8_t(1):uint8_t(0);
+            regionVisibility[visibilityIndex] = cameraInRegion?1:0;
         }
     }
 }
