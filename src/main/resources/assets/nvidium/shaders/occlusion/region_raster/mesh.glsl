@@ -15,7 +15,6 @@
 #define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveIndicesNV
 #endif
 
-#extension GL_NV_gpu_shader5 : require
 
 
 #import <nvidium:occlusion/scene.glsl>
@@ -55,7 +54,7 @@ void main() {
     // this remove an entire level of indirection and also puts region data in the very fast path
     Region data = regionData[regionIndicies[gl_WorkGroupID.x]];//fetch the region data
 
-    int visibilityIndex = (int)gl_WorkGroupID.x;
+    int visibilityIndex = int(gl_WorkGroupID.x);
     //If the region metadata was empty, return
     if (data.a.x == uint(-1) && data.a.y == uint(-1)) {
         regionVisibility[visibilityIndex] = 0;

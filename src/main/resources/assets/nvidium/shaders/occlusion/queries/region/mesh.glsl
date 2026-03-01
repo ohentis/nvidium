@@ -16,7 +16,6 @@
 
 #endif
 
-#extension GL_NV_gpu_shader5 : require
 
 
 #import <nvidium:occlusion/scene.glsl>
@@ -72,7 +71,7 @@ void main() {
     corner *= 16.0f;
     MESHVERTICES[gl_LocalInvocationID.x].gl_Position = MVP*(getRegionTransformation(data)*vec4(corner, 1.0));
 
-    int visibilityIndex = (int)gl_WorkGroupID.x;
+    int visibilityIndex = int(gl_WorkGroupID.x);
 
     regionVisibility[visibilityIndex] = 0;
 

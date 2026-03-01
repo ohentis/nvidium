@@ -2,7 +2,6 @@
 #extension GL_ARB_shading_language_include : enable
 #pragma optionNV(unroll all)
 #define UNROLL_LOOP
-#extension GL_NV_gpu_shader5 : require
 
 //#extension GL_NV_conservative_raster_underestimation : enable
 

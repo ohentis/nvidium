@@ -8,7 +8,6 @@
 #else
 #extension GL_NV_mesh_shader : require
 #endif
-#extension GL_NV_gpu_shader5 : require
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -53,7 +52,7 @@ void main() {
     chunk -= unpackOriginOffsetId(transformationId);
 
     origin = vec3(chunk<<4);
-    baseOffset = (uint)header.w;
+    baseOffset = uint(header.w);
 
     populateTasks(chunk, uvec4(sectionData[sectionId].renderRanges));
 

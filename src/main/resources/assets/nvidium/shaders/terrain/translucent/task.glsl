@@ -8,7 +8,6 @@
 #else
 #extension GL_NV_mesh_shader : require
 #endif
-#extension GL_NV_gpu_shader5 : require
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -70,7 +69,7 @@ void main() {
     translucencyIndex = sectionData[sectionId].translucencyDataIdx;
 
     ivec4 header = sectionData[sectionId].header;
-    uint baseDataOffset = (uint)header.w;
+    uint baseDataOffset = uint(header.w);
     ivec3 chunk = ivec3(header.xyz)>>8;
     chunk.y &= 0x1ff;
     chunk.y <<= 32-9;

@@ -16,7 +16,6 @@
 #define MESH_PRIMITIVE_TRIANGLE_INDICIES gl_PrimitiveIndicesNV
 #endif
 
-#extension GL_NV_gpu_shader5 : require
 
 #extension GL_KHR_shader_subgroup_basic : require
 #extension GL_KHR_shader_subgroup_ballot : require
@@ -47,8 +46,8 @@ const uint PILUTD[] = {1, 2, 0, 5, 5, 1, 7, 7};
 const uint PILUTE[] = {6, 2, 3, 7};
 
 void emitIndicies(int visIndex) {
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|0] = PILUTA[gl_LocalInvocationID.x];
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|1] = PILUTB[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|0u] = PILUTA[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|1u] = PILUTB[gl_LocalInvocationID.x];
     MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
     MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
     MESHPRIMITIVES[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
@@ -60,7 +59,7 @@ void emitParital(int visIndex) {
 
 //TODO: Check if the section can be culled via fog
 void main() {
-    int visibilityIndex = (int)(_visOutBase|gl_WorkGroupID.x);
+    int visibilityIndex = int(_visOutBase|gl_WorkGroupID.x);
 
     uint lastData = sectionVisibility[visibilityIndex];
     // this is almost 100% guarenteed not needed afaik
