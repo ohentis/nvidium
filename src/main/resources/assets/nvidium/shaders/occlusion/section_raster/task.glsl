@@ -22,7 +22,7 @@ struct Task { TASK_FIELDS };
 taskPayloadSharedEXT Task taskOut;
 #define _visOutBase taskOut._visOutBase
 #define _offset taskOut._offset
-#define regionTransform taskOut._regionTransform
+#define regionTransform taskOut.regionTransform
 #define chunkShift taskOut.chunkShift
 #else
 taskNV out Task { TASK_FIELDS };
