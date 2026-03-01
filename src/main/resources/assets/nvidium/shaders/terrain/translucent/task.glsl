@@ -17,18 +17,25 @@
 layout(local_size_x=1) in;
 
 //In here add an array that is then "logged" on in the mesh shader to find the draw data
-#ifdef USE_GL_EXT_MESH_SHADERS
-out taskPayloadSharedEXT Task {
+#ifdef TRANSLUCENCY_SORTING_QUADS
+#define JIGGLE uint jiggle;
 #else
-taskNV out Task {
+#define JIGGLE
 #endif
-    vec4 originAndBaseData;
-    uint quadCount;
-    #ifdef TRANSLUCENCY_SORTING_QUADS
-    uint jiggle;
-    #endif
+#define TASK_FIELDS  vec4 originAndBaseData;\
+    uint quadCount;\
+    JIGGLE\
     int translucencyIndex;
-};
+#ifdef USE_GL_EXT_MESH_SHADERS
+struct Task { TASK_FIELDS };
+taskPayloadSharedEXT Task taskOut;
+#define originAndBaseData taskOut.originAndBaseData;
+#define quadCount taskOut.quadCount;
+#define jiggle taskOut.jiggle;
+#define translucencyIndex taskOut.translucencyIndex;
+#else
+taskNV out Task { TASK_FIELDS };
+#endif
 
 bool shouldRender(uint sectionId) {
     //Check visibility

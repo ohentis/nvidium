@@ -1,21 +1,25 @@
 #define MESH_WORKLOAD_PER_INVOCATION 32
+#define TASK_FIELDS \
+    vec3 origin; \
+    uint baseOffset; \
+    uint quadCount; \
+    uint transformationId; \
+    uvec4 binIa, binIb, binVa, binVb;
 
 #ifdef USE_GL_EXT_MESH_SHADERS
-out taskPayloadSharedEXT Task {
+struct Task { TASK_FIELDS };
+taskPayloadSharedEXT Task taskOut;
+#define origin taskOut.origin
+#define baseOffset taskOut.baseOffset
+#define quadCount taskOut.quadCount
+#define transformationId taskOut.transformationId
+#define binIa taskOut.binIa
+#define binIb taskOut.binIb
+#define binVa taskOut.binVa
+#define binVb taskOut.binVb
 #else
-taskNV out Task {
+taskNV out Task { TASK_FIELDS };
 #endif
-    vec3 origin;
-    uint baseOffset;
-    uint quadCount;
-    uint transformationId;
-
-    //Binary search indexs and data
-    uvec4 binIa;
-    uvec4 binIb;
-    uvec4 binVa;
-    uvec4 binVb;
-};
 
 void putBinData(inout uint idx, inout uint lastIndex, uint offset, uint nextOffset) {
     uint len = nextOffset - offset;

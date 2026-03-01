@@ -6,6 +6,7 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.cortex.nvidium.Nvidium;
 import org.lwjgl.opengl.GL20C;
 
 import me.cortex.nvidium.gl.GlObject;
@@ -98,7 +99,7 @@ public class Shader extends GlObject {
             String log = GL20C.glGetShaderInfoLog(shader);
 
             if (!log.isEmpty()) {
-                System.err.println(log);
+                Nvidium.LOGGER.error(log);
             }
 
             int result = GL20C.glGetShaderi(shader, GL20C.GL_COMPILE_STATUS);

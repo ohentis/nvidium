@@ -27,20 +27,25 @@ layout(local_size_x = 32) in;
 layout(triangles, max_vertices=128, max_primitives=64) out;
 
 //originAndBaseData.w is in quad count space, so is endIdx
-#ifdef USE_GL_EXT_MESH_SHADERS
-in taskPayloadSharedEXT Task {
+#ifdef TRANSLUCENCY_SORTING_QUADS
+#define JIGGLE uint jiggle;
 #else
-taskNV in Task {
+#define JIGGLE
 #endif
-
-
-    vec4 originAndBaseData;
-    uint quadCount;
-    #ifdef TRANSLUCENCY_SORTING_QUADS
-    uint jiggle;
-    #endif
+#define TASK_FIELDS  vec4 originAndBaseData;\
+    uint quadCount;\
+    JIGGLE\
     int translucencyIndex;
-};
+#ifdef USE_GL_EXT_MESH_SHADERS
+struct Task { TASK_FIELDS };
+taskPayloadSharedEXT Task taskIn;
+#define originAndBaseData taskIn.originAndBaseData;
+#define quadCount taskIn.quadCount;
+#define jiggle taskIn.jiggle;
+#define translucencyIndex taskIn.translucencyIndex;
+#else
+taskNV in Task { TASK_FIELDS };
+#endif
 
 #ifndef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
 layout(location=1) out Interpolants {

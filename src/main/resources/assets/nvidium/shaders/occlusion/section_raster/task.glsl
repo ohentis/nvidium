@@ -13,17 +13,20 @@
 
 //This is 1 since each task shader workgroup -> multiple meshlets. its not each globalInvocation (afaik)
 layout(local_size_x=1) in;
-#ifdef USE_GL_EXT_MESH_SHADERS
-out taskPayloadSharedEXT Task {
-#else
-taskNV out Task {
-#endif
-    uint _visOutBase;// The base offset for the visibility output of the shader
-    uint _offset;//start offset for regions (can/should probably be a uint16 since this is just the region id << 8)
-    //uint64_t bitcheck[4];//TODO: MAYBE DO THIS, each bit is whether there a section at that index, doing so is faster than pulling metadata to check if a section is valid or not
-    mat4 regionTransform;
+#define TASK_FIELDS uint _visOutBase; \
+    uint _offset; \
+    mat4 regionTransform; \
     ivec3 chunkShift;
-};
+#ifdef USE_GL_EXT_MESH_SHADERS
+struct Task { TASK_FIELDS };
+taskPayloadSharedEXT Task taskOut;
+#define _visOutBase taskOut._visOutBase
+#define _offset taskOut._offset;
+#define regionTransform taskOut._regionTransform
+#define chunkShift taskOut.chunkShift
+#else
+taskNV out Task { TASK_FIELDS };
+#endif
 
 void main() {
     //TODO: see whats faster, atomicAdd (for mdic) or dispatching alot of empty calls (mdi)

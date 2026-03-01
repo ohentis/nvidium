@@ -32,22 +32,28 @@ layout(location=1) out Interpolants {
 } OUT[];
 #endif
 
-#ifdef USE_GL_EXT_MESH_SHADERS
-in taskPayloadSharedEXT Task {
-#else
-taskNV in Task {
-#endif
-    vec3 origin;
-    uint baseOffset;
-    uint quadCount;
-    uint transformationId;
-
-    //Binary search indexs and data
-    uvec4 binIa;
-    uvec4 binIb;
-    uvec4 binVa;
+#define TASK_FIELDS vec3 origin;\
+    uint baseOffset;\
+    uint quadCount;\
+    uint transformationId;\
+    uvec4 binIa;\
+    uvec4 binIb;\
+    uvec4 binVa;\
     uvec4 binVb;
-};
+#ifdef USE_GL_EXT_MESH_SHADERS
+struct Task { TASK_FIELDS };
+taskPayloadSharedEXT Task taskIn;
+#define origin taskIn.origin
+#define baseOffset taskIn.baseOffset
+#define quadCount taskIn.quadCount
+#define transformationId taskIn.transformationId
+#define binIa taskIn.binIa
+#define binIb taskIn.binIb
+#define binVa taskIn.binVa
+#define binVb taskIn.binVb
+#else
+taskNV in Task { TASK_FIELDS };
+#endif
 
 
 //Do a binary search via global invocation index to determine the base offset

@@ -17,16 +17,20 @@
 layout(local_size_x = 8) in;
 layout(triangles, max_vertices=8, max_primitives=12) out;
 
-#ifdef USE_GL_EXT_MESH_SHADERS
-in taskPayloadSharedEXT Task {
-#else
-taskNV in Task {
-#endif
-    uint _visOutBase;//Base output visibility index
-    uint _offset;
-    mat4 regionTransform;
+#define TASK_FIELDS uint _visOutBase; \
+    uint _offset; \
+    mat4 regionTransform; \
     ivec3 chunkShift;
-};
+#ifdef USE_GL_EXT_MESH_SHADERS
+struct Task { TASK_FIELDS };
+taskPayloadSharedEXT Task taskIn;
+#define _visOutBase taskIn._visOutBase
+#define _offset taskIn._offset;
+#define regionTransform taskIn._regionTransform
+#define chunkShift taskIn.chunkShift
+#else
+taskNV in Task { TASK_FIELDS };
+#endif
 
 const uint PILUTA[] = {0, 3, 6, 0, 1, 7, 4, 5};
 const uint PILUTB[] = {1, 2, 6, 4, 0, 7, 6, 4};
