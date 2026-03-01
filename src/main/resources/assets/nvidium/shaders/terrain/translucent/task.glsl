@@ -29,10 +29,10 @@ layout(local_size_x=1) in;
 #ifdef USE_GL_EXT_MESH_SHADERS
 struct Task { TASK_FIELDS };
 taskPayloadSharedEXT Task taskOut;
-#define originAndBaseData taskOut.originAndBaseData;
-#define quadCount taskOut.quadCount;
-#define jiggle taskOut.jiggle;
-#define translucencyIndex taskOut.translucencyIndex;
+#define originAndBaseData taskOut.originAndBaseData
+#define quadCount taskOut.quadCount
+#define jiggle taskOut.jiggle
+#define translucencyIndex taskOut.translucencyIndex
 #else
 taskNV out Task { TASK_FIELDS };
 #endif
