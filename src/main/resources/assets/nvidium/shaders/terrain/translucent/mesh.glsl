@@ -45,7 +45,7 @@ taskNV in Task {
 #ifndef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
 layout(location=1) out Interpolants {
 #ifdef RENDER_FOG
-    float16_t fogLerp;
+    float fogLerp;
 #endif
     vec2 uv;
     vec3 v_colour;
@@ -72,7 +72,7 @@ void emitVertex(uint vertexBaseId, uint innerId) {
 #ifndef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
     #ifdef RENDER_FOG
     float fogLerp = clamp(computeFogLerp(pos+subchunkOffset.xyz, isCylindricalFog, fogStart, fogEnd) * float(fogColour.a) /255, 0, 1);
-    OUT[outId].fogLerp = float16_t(fogLerp);
+    OUT[outId].fogLerp = fogLerp;
     #endif
 
     OUT[outId].uv = decodeVertexUV(V);
