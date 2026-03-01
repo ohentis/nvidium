@@ -42,7 +42,9 @@ public class NvidiumGuiConfig extends GuiConfig {
             if (manager != null) {
 
                 NvidiumWorldRenderer pipeline = ((INvidiumWorldRendererGetter) manager).nvidium$getRenderer();
-                pipeline.reloadShaders();
+                if(pipeline != null) {
+                    pipeline.reloadShaders();
+                }
 
             }
         }
