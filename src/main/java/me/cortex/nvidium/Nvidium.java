@@ -40,8 +40,8 @@ public class Nvidium {
 
     public static void checkSystemIsCapable() {
         var cap = GL.getCapabilities();
-        boolean supported = ((cap.GL_EXT_mesh_shader && cap.GL_NV_bindless_multi_draw_indirect)
-            || cap.GL_NV_mesh_shader);
+        boolean supported = ((cap.GL_NV_mesh_shader && cap.GL_NV_bindless_multi_draw_indirect)
+            || cap.GL_EXT_mesh_shader);
         IS_COMPATIBLE = supported;
         if (IS_COMPATIBLE) {
             LOGGER.info("All capabilities met");
