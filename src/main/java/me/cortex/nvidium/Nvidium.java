@@ -40,14 +40,14 @@ public class Nvidium {
 
     public static void checkSystemIsCapable() {
         var cap = GL.getCapabilities();
-        boolean supported = ((cap.GL_EXT_mesh_shader && cap.GL_NV_bindless_multi_draw_indirect) || cap.GL_NV_mesh_shader)
-            && cap.GL_ARB_sparse_buffer;
+        boolean supported = ((cap.GL_EXT_mesh_shader && cap.GL_NV_bindless_multi_draw_indirect) || cap.GL_NV_mesh_shader);
         IS_COMPATIBLE = supported;
         if (IS_COMPATIBLE) {
             LOGGER.info("All capabilities met");
         } else {
             LOGGER.warn("Not all requirements met, disabling nvidium");
         }
+        SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER = cap.GL_ARB_sparse_buffer;
         if (IS_COMPATIBLE && Util.getOSType() == Util.EnumOS.LINUX) {
             LOGGER.warn(
                 "Linux currently uses fallback terrain buffer due to driver inconsistencies, expect increase vram usage");
