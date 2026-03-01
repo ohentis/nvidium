@@ -156,7 +156,7 @@ public class RenderPipeline {
             .maxRegions();
 
         sceneUniform = new SsboBuffer(SCENE_SIZE );
-        regionIndicies = new SsboBuffer(maxRegions * 2L);
+        regionIndicies = new SsboBuffer(maxRegions * 4L);
         regionVisibility = new SsboBuffer(maxRegions * 4L);
         sectionVisibility = new SsboBuffer(maxRegions * 1024L);
         terrainCommandBuffer = new SsboBuffer(maxRegions * 8L);
@@ -318,12 +318,12 @@ public class RenderPipeline {
 
             regionMap = new short[regions.size()];
             if (visibleRegions == 0) return;
-            long addr = uploadStream.upload(regionIndicies, 0, visibleRegions * 2);
+            long addr = uploadStream.upload(regionIndicies, 0, visibleRegions * 4L);
             queryAddr = addr;// This is ungodly hacky
             int j = 0;
             for (int i : regions) {
                 regionMap[j] = (short) i;
-                MemoryUtil.memPutShort(addr + ((long) j << 1), (short) i);
+                MemoryUtil.memPutInt(addr + ((long) j << 2), i & 0xFFFF);
                 j++;
             }
 

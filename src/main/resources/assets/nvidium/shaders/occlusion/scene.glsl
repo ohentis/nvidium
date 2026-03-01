@@ -110,7 +110,7 @@ layout(std430, binding=0) readonly restrict buffer SceneData {
     uint frameId;
 };
 layout(std430, binding=1) readonly restrict buffer RegionIndicies {
-    uint16_t regionIndicies[];
+    uint regionIndicies[];
 };
 layout(std430, binding=2) readonly restrict buffer RegionData {
     Region regionData[];
