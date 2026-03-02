@@ -99,6 +99,7 @@ public class Shader extends GlObject {
             String log = GL20C.glGetShaderInfoLog(shader);
 
             if (!log.isEmpty()) {
+                Nvidium.LOGGER.error(src);
                 Nvidium.LOGGER.error(log);
             }
 
