@@ -23,7 +23,7 @@ layout(local_size_x = 32) in;
 layout(triangles, max_vertices=64, max_primitives=32) out;
 
 #ifndef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
-layout(location=1) out Interpolants {
+out Interpolants {
 #ifdef RENDER_FOG
     float fogLerp;
 #endif

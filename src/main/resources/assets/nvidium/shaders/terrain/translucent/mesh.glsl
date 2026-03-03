@@ -48,7 +48,7 @@ taskNV in Task { TASK_FIELDS };
 #endif
 
 #ifndef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
-layout(location=1) out Interpolants {
+out Interpolants {
 #ifdef RENDER_FOG
     float fogLerp;
 #endif

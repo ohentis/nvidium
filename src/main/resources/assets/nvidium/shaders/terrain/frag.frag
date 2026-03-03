@@ -20,7 +20,7 @@ layout(binding = 1) uniform sampler2D tex_light;
 
 layout(location = 0) out vec4 colour;
 #ifndef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
-layout(location = 1) in Interpolants {
+in Interpolants {
     #ifdef RENDER_FOG
     float fogLerp;
     #endif
