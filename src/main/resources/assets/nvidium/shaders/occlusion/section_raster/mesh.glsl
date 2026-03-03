@@ -40,16 +40,16 @@ const uint PILUTTE[] = {6, 5, 7, 3};
 const uint PILUTTF[] = {7, 4, 6, 7};
 
 void emitIndicies(int visIndex) {
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[gl_LocalInvocationID.x * 3 + 0] = PILUTTA[gl_LocalInvocationID.x];
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[gl_LocalInvocationID.x * 3 + 1] = PILUTTB[gl_LocalInvocationID.x];
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[gl_LocalInvocationID.x * 3 + 2] = PILUTTC[gl_LocalInvocationID.x];
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(gl_LocalInvocationID.x, 0, PILUTTA[gl_LocalInvocationID.x]);
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(gl_LocalInvocationID.x, 1, PILUTTB[gl_LocalInvocationID.x]);
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(gl_LocalInvocationID.x, 2, PILUTTC[gl_LocalInvocationID.x]);
     MESHPRIMITIVES[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
 }
 
 void emitParital(int visIndex) {
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x+8) * 3 + 0] = PILUTTD[gl_LocalInvocationID.x];
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x+8) * 3 + 1] = PILUTTE[gl_LocalInvocationID.x];
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x+8) * 3 + 2] = PILUTTF[gl_LocalInvocationID.x];
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES((gl_LocalInvocationID.x+8), 0, PILUTTD[gl_LocalInvocationID.x]);
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES((gl_LocalInvocationID.x+8), 1, PILUTTE[gl_LocalInvocationID.x]);
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES((gl_LocalInvocationID.x+8), 2, PILUTTF[gl_LocalInvocationID.x]);
     MESHPRIMITIVES[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
     SET_MESH_OUTPUTS(48,12);
 }

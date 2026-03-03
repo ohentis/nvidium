@@ -58,14 +58,14 @@ layout(location=1) out Interpolants {
 #endif
 
 void emitQuadIndicies() {
-    uint primBase = gl_LocalInvocationID.x * 6;
+    uint primBase = gl_LocalInvocationID.x * 2;
     uint vertexBase = gl_LocalInvocationID.x<<2;
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+0] = vertexBase+0;
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+1] = vertexBase+1;
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+2] = vertexBase+2;
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+3] = vertexBase+2;
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+4] = vertexBase+3;
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[primBase+5] = vertexBase+0;
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(primBase, 0, vertexBase+0);
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(primBase, 1, vertexBase+1);
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(primBase, 2, vertexBase+2);
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(primBase+1, 0, vertexBase+2);
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(primBase+1, 1, vertexBase+3);
+    SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(primBase+1, 2, vertexBase+0);
 }
 
 void emitVertex(uint vertexBaseId, uint innerId) {

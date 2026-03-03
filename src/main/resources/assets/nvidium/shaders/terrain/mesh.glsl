@@ -184,10 +184,10 @@ void main() {
         putVertex(vertBase + 1, V);
         MESHVERTICES[vertBase + 1].gl_Position = pV;
 
-        MESH_PRIMITIVE_TRIANGLE_INDICIES[triIndex * 3 + 0] = vertBase + 0; // Common vertex
-        MESH_PRIMITIVE_TRIANGLE_INDICIES[triIndex * 3 + 1] = vertBase + 1; // Unique vertex
-        MESH_PRIMITIVE_TRIANGLE_INDICIES[triIndex * 3 + 2] = vertBase + (triangle0 ? 2 :         // If it's triangle 0 our other common vertex is +2, ez
-                                                               (peerDraw ? -2 : -1)); // If it's triangle 1 we need to check if peer triangle has been drawn to adjust common vertex idx
+        SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(triIndex, 0, vertBase + 0); // Common vertex
+        SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(triIndex, 1, vertBase + 1); // Unique vertex
+        SET_MESH_PRIMITIVE_TRIANGLE_INDICIES(triIndex, 2, vertBase + (triangle0 ? 2 :         // If it's triangle 0 our other common vertex is +2, ez
+                                                               (peerDraw ? -2 : -1))); // If it's triangle 1 we need to check if peer triangle has been drawn to adjust common vertex idx
 
         // Emit primitive
         MESHPRIMITIVES[triIndex++].gl_PrimitiveID = int(quadId<<1) | (triangle0 ? 0 : 1);
