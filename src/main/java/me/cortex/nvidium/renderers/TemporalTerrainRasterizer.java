@@ -1,6 +1,7 @@
 package me.cortex.nvidium.renderers;
 
 import static me.cortex.nvidium.gl.shader.ShaderType.*;
+import static org.lwjgl.opengl.GL.getCapabilities;
 import static org.lwjgl.opengl.GL11C.*;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL15C.glBindBuffer;
@@ -27,7 +28,7 @@ public class TemporalTerrainRasterizer extends Phase {
     private final int lightSampler = glGenSamplers();
     private final Shader shader = Shader.make()
         .addSource(TASK, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/temporal_task.glsl")))
-        .addSource(MESH, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/mesh.glsl")))
+        .addSource(getCapabilities().GL_EXT_mesh_shader ? MESH_EXT : MESH_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/mesh.glsl")))
         .addSource(FRAGMENT, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/frag.frag")))
         .compile();
 

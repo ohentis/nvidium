@@ -1,7 +1,9 @@
 package me.cortex.nvidium.renderers;
 
 import static me.cortex.nvidium.gl.shader.ShaderType.FRAGMENT;
-import static me.cortex.nvidium.gl.shader.ShaderType.MESH;
+import static me.cortex.nvidium.gl.shader.ShaderType.MESH_EXT;
+import static me.cortex.nvidium.gl.shader.ShaderType.MESH_NV;
+import static org.lwjgl.opengl.GL.getCapabilities;
 
 import net.minecraft.util.ResourceLocation;
 
@@ -14,7 +16,7 @@ import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 public class RegionRasterizer extends Phase {
 
     private final Shader shader = Shader.make()
-        .addSource(MESH, ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/region_raster/mesh.glsl")))
+        .addSource(getCapabilities().GL_EXT_mesh_shader ? MESH_EXT : MESH_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/region_raster/mesh.glsl")))
         .addSource(
             FRAGMENT,
             ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/region_raster/fragment.frag")))

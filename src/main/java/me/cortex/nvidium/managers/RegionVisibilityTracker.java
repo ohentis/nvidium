@@ -1,7 +1,9 @@
 package me.cortex.nvidium.managers;
 
 import static me.cortex.nvidium.gl.shader.ShaderType.FRAGMENT;
-import static me.cortex.nvidium.gl.shader.ShaderType.MESH;
+import static me.cortex.nvidium.gl.shader.ShaderType.MESH_EXT;
+import static me.cortex.nvidium.gl.shader.ShaderType.MESH_NV;
+import static org.lwjgl.opengl.GL.getCapabilities;
 import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
 
@@ -20,7 +22,7 @@ import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 public class RegionVisibilityTracker {
 
     private final Shader shader = Shader.make()
-        .addSource(MESH, ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/queries/region/mesh.glsl")))
+        .addSource(getCapabilities().GL_EXT_mesh_shader ? MESH_EXT : MESH_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/queries/region/mesh.glsl")))
         .addSource(
             FRAGMENT,
             ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/queries/region/fragment.frag")))
