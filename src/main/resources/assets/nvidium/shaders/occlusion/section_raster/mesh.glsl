@@ -32,23 +32,26 @@ taskPayloadSharedEXT Task taskIn;
 taskNV in Task { TASK_FIELDS };
 #endif
 
-const uint PILUTA[] = {0, 3, 6, 0, 1, 7, 4, 5};
-const uint PILUTB[] = {1, 2, 6, 4, 0, 7, 6, 4};
-const uint PILUTC[] = {2, 0, 4, 5, 1, 3, 7, 2};
-const uint PILUTD[] = {1, 2, 0, 5, 5, 1, 7, 7};
-
-const uint PILUTE[] = {6, 2, 3, 7};
+const uint PILUTTA[] = {0, 1, 0, 6, 0, 5, 1, 7};
+const uint PILUTTB[] = {1, 3, 2, 4, 4, 1, 5, 3};
+const uint PILUTTC[] = {2, 2, 6, 0, 5, 0, 7, 1};
+const uint PILUTTD[] = {4, 7, 2, 2};
+const uint PILUTTE[] = {6, 5, 7, 3};
+const uint PILUTTF[] = {7, 4, 6, 7};
 
 void emitIndicies(int visIndex) {
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|0u] = PILUTA[gl_LocalInvocationID.x];
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|1u] = PILUTB[gl_LocalInvocationID.x];
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|2] = PILUTC[gl_LocalInvocationID.x];
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x<<2)|3] = PILUTD[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[gl_LocalInvocationID.x * 3 + 0] = PILUTTA[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[gl_LocalInvocationID.x * 3 + 1] = PILUTTB[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[gl_LocalInvocationID.x * 3 + 2] = PILUTTC[gl_LocalInvocationID.x];
     MESHPRIMITIVES[gl_LocalInvocationID.x].gl_PrimitiveID = visIndex;
 }
+
 void emitParital(int visIndex) {
-    MESH_PRIMITIVE_TRIANGLE_INDICIES[(8*4)+gl_LocalInvocationID.x] = PILUTE[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x+8) * 3 + 0] = PILUTTD[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x+8) * 3 + 1] = PILUTTE[gl_LocalInvocationID.x];
+    MESH_PRIMITIVE_TRIANGLE_INDICIES[(gl_LocalInvocationID.x+8) * 3 + 2] = PILUTTF[gl_LocalInvocationID.x];
     MESHPRIMITIVES[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
+    SET_MESH_OUTPUTS(48,12);
 }
 
 //TODO: Check if the section can be culled via fog
