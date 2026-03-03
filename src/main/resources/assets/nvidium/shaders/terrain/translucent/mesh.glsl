@@ -38,7 +38,7 @@ layout(triangles, max_vertices=128, max_primitives=64) out;
     int translucencyIndex;
 #ifdef USE_GL_EXT_MESH_SHADERS
 struct Task { TASK_FIELDS };
-taskPayloadSharedEXT Task taskIn
+taskPayloadSharedEXT Task taskIn;
 #define originAndBaseData taskIn.originAndBaseData
 #define quadCount taskIn.quadCount
 #define jiggle taskIn.jiggle
