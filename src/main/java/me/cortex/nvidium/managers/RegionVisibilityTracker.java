@@ -51,14 +51,15 @@ public class RegionVisibilityTracker {
         MeshShaderDispatcher.INSTANCE.drawMeshTasks(0, regionCount);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         downStream.download(regionVisibilityBuffer, 0, regionCount, ptr -> {
-            for (int i = 0; i < regionMapping.length; i++) {
-                if (MemoryUtil.memGetInt(ptr + i * 4L) == 1) {
+            ptr = ptr.duplicate();
+            for (short value : regionMapping) {
+                if (ptr.getInt() == 1) {
                     // System.out.println(regionMapping[i] + " was visible");
-                    frustum[regionMapping[i]]++;
-                    visible[regionMapping[i]] = fram;
+                    frustum[value]++;
+                    visible[value] = fram;
                 } else {
                     // System.out.println(regionMapping[i] + " was not visible");
-                    frustum[regionMapping[i]]++;
+                    frustum[value]++;
                 }
             }
         });

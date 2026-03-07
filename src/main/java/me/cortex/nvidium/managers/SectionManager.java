@@ -2,6 +2,7 @@ package me.cortex.nvidium.managers;
 
 import static me.cortex.nvidium.Nvidium.LOGGER;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import org.embeddedt.embeddium.impl.common.util.NativeBuffer;
@@ -74,14 +75,15 @@ public class SectionManager {
         this.translucencyQuadCounts.defaultReturnValue(null);
     }
 
-    public void uploadIndexBuffer(IntBuffer indexBuffer, int[] quadCountData, long upload) {
+    public void uploadIndexBuffer(IntBuffer indexBuffer, int[] quadCountData, ByteBuffer upload) {
+        upload = upload.duplicate();
         int quadOffset = 0;
         for (var facing : ModelQuadFacing.values()) {
             for (int i = 0; i < quadCountData[facing.ordinal()]; i++) {
                 // We only need 1 index out of 6 because we are working with quad indexes, also /4 because we have 4
                 // vertices per quad
                 int idx = (indexBuffer.get((quadOffset + i) * 6) / 4) + quadOffset;
-                MemoryUtil.memPutInt(upload + (long) (quadOffset + i) * 4, idx);
+                upload.putInt(idx);
             }
             quadOffset += quadCountData[facing.ordinal()];
         }
@@ -137,7 +139,7 @@ public class SectionManager {
 
                 this.section2index.put(sectionKey, indexDataAddress);
 
-                long upload = translucencyIndexArena.upload(uploadStream, indexDataAddress);
+                ByteBuffer upload = translucencyIndexArena.upload(uploadStream, indexDataAddress);
                 uploadIndexBuffer(idxBuffer, quadCountData, upload);
             }
 
@@ -148,9 +150,8 @@ public class SectionManager {
                 return;
             }
 
-            long metadata = regionManager.setSectionData(sectionIdx);
-            metadata += 32; // Go to translucency data offset
-            MemoryUtil.memPutInt(metadata, indexDataAddress);
+            ByteBuffer metadata = regionManager.setSectionData(sectionIdx);
+            metadata.putInt(metadata.position() + 32, indexDataAddress); // Go to translucency data offset
         }
     }
 
@@ -212,12 +213,12 @@ public class SectionManager {
 
             this.section2terrain.put(sectionKey, terrainAddress);
 
-            long geometryUpload = terrainAreana.upload(uploadStream, terrainAddress);
+            ByteBuffer geometryUpload = terrainAreana.upload(uploadStream, terrainAddress);
             MemoryUtil.memCopy(
                 MemoryUtil.memAddress(
                     output.geometry()
                         .getDirectBuffer()),
-                geometryUpload,
+                MemoryUtil.memAddress(geometryUpload),
                 output.geometry()
                     .getLength());
         }
@@ -228,7 +229,7 @@ public class SectionManager {
             key -> this.regionManager
                 .allocateSection((int) (key << 0 >> 42), (int) (key << 44 >> 44), (int) (key << 22 >> 42)));
 
-        long metadata = regionManager.setSectionData(sectionIdx);
+        ByteBuffer metadata = regionManager.setSectionData(sectionIdx);
         boolean hideSectionBitSet = this.hiddenSectionKeys.contains(sectionKey);
         Vector3i min = output.min();
         Vector3i size = output.size();
@@ -242,15 +243,14 @@ public class SectionManager {
             | ((regionManager.getSectionRefId(sectionIdx)) << 18);
         int pz = section.getChunkZ() << 8 | size.z << 4 | min.z;
         int pw = terrainAddress;
-        new Vector4i(px, py, pz, pw).getToAddress(metadata);
-        metadata += 4 * 4;
+        new Vector4i(px, py, pz, pw).get(metadata);
+
 
         // Write the geometry offsets, packed into ints
         for (int i = 0; i < 4; i++) {
             int geo = Short.toUnsignedInt(output.offsets()[i * 2])
                 | (Short.toUnsignedInt(output.offsets()[i * 2 + 1]) << 16);
-            MemoryUtil.memPutInt(metadata, geo);
-            metadata += 4;
+            metadata.putInt(geo);
         }
     }
 
@@ -272,9 +272,8 @@ public class SectionManager {
         int sectionId = this.section2id.get(sectionKey);
         // Only update the section if it is loaded
         if (sectionId != -1) {
-            long metadata = this.regionManager.setSectionData(sectionId);
-            MemoryUtil
-                .memPutInt(metadata + 4, (MemoryUtil.memGetInt(metadata + 4) & ~(1 << 17)) | (hide ? 1 : 0) << 17);
+            ByteBuffer metadata = this.regionManager.setSectionData(sectionId);
+            metadata.putInt(metadata.position() + 4, (metadata.getInt(metadata.position() + 4) & ~(1 << 17)) | (hide ? 1 : 0) << 17);
         }
     }
 

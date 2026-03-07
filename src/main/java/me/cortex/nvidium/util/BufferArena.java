@@ -6,6 +6,8 @@ import me.cortex.nvidium.gl.buffers.Buffer;
 import me.cortex.nvidium.gl.buffers.SparseSsboBuffer;
 import me.cortex.nvidium.gl.buffers.SsboBuffer;
 
+import java.nio.ByteBuffer;
+
 // TODO: make it not remove and immediately deallocate the sparse pages, wait until the end of a frame to deallocate
 // since committing pages is not cheap
 public class BufferArena {
@@ -54,7 +56,7 @@ public class BufferArena {
         }
     }
 
-    public long upload(UploadingBufferStream stream, int addr) {
+    public ByteBuffer upload(UploadingBufferStream stream, int addr) {
         return stream.upload(
             buffer,
             Integer.toUnsignedLong(addr) * 4L * vertexFormatSize,

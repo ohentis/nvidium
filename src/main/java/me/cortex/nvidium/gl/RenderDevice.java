@@ -5,11 +5,8 @@ import static org.lwjgl.opengl.ARBDirectStateAccess.glFlushMappedNamedBufferRang
 import static org.lwjgl.opengl.GL42C.glMemoryBarrier;
 
 import me.cortex.nvidium.gl.buffers.Buffer;
-import me.cortex.nvidium.gl.buffers.DeviceOnlyMappedBuffer;
 import me.cortex.nvidium.gl.buffers.IClientMappedBuffer;
-import me.cortex.nvidium.gl.buffers.IDeviceMappedBuffer;
 import me.cortex.nvidium.gl.buffers.PersistentClientMappedBuffer;
-import me.cortex.nvidium.gl.buffers.PersistentSparseAddressableBuffer;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
 @Lwjgl3Aware
@@ -32,11 +29,4 @@ public class RenderDevice {
         glCopyNamedBufferSubData(((GlObject) src).getId(), ((GlObject) dst).getId(), srcOffset, dstOffset, size);
     }
 
-    public PersistentSparseAddressableBuffer createSparseBuffer(long totalSize) {
-        return new PersistentSparseAddressableBuffer(totalSize);
-    }
-
-    public IDeviceMappedBuffer createDeviceOnlyMappedBuffer(long size) {
-        return new DeviceOnlyMappedBuffer(size);
-    }
 }

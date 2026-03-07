@@ -1,5 +1,6 @@
 package me.cortex.nvidium.managers;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -73,32 +74,32 @@ public class RegionManager {
                     // There is no region that has replaced the old one at the id so we need to clear the region
                     // metadata
                     // to prevent the gpu from rendering arbitary data
-                    long regionUpload = this.uploadStream
+                    ByteBuffer regionUpload = this.uploadStream
                         .upload(this.regionBuffer, (long) region.id * META_SIZE, META_SIZE);
-                    MemoryUtil.memSet(regionUpload, -1, META_SIZE);
+                    MemoryUtil.memSet(regionUpload.slice(regionUpload.position(), META_SIZE), -1);
 
-                    long sectionUpload = this.uploadStream.upload(
+                    ByteBuffer sectionUpload = this.uploadStream.upload(
                         this.sectionBuffer,
                         (long) region.id * TOTAL_SECTION_META_SIZE,
                         TOTAL_SECTION_META_SIZE);
-                    MemoryUtil.memSet(sectionUpload, 0, TOTAL_SECTION_META_SIZE);
+                    MemoryUtil.memSet(sectionUpload.slice(regionUpload.position(), TOTAL_SECTION_META_SIZE), 0);
                 }
             } else {
                 // It is just a normal region update
-                long regionUpload = this.uploadStream
+                ByteBuffer regionUpload = this.uploadStream
                     .upload(this.regionBuffer, (long) region.id * META_SIZE, META_SIZE);
                 this.setRegionMetadata(regionUpload, region);
 
-                long sectionUpload = this.uploadStream
+                ByteBuffer sectionUpload = this.uploadStream
                     .upload(this.sectionBuffer, (long) region.id * TOTAL_SECTION_META_SIZE, TOTAL_SECTION_META_SIZE);
-                MemoryUtil.memCopy(region.sectionData, sectionUpload, TOTAL_SECTION_META_SIZE);
+                MemoryUtil.memCopy(region.sectionData, sectionUpload);
 
                 this.regionUploadCallback.accept(region.id);
             }
         }
     }
 
-    private void setRegionMetadata(long upload, Region region) {
+    private void setRegionMetadata(ByteBuffer upload, Region region) {
         int minX = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE;
         int minY = Integer.MAX_VALUE;
@@ -127,8 +128,9 @@ public class RegionManager {
                                                                            // large if bits are needed for other data
         long z = ((((long) region.rz << 3) + minZ) & ((1 << 24) - 1)) << (64 - 24);
         long transformationId = (((long) region.transformationId) << (64 - 24 - MAX_TRANSFORMATION_SIZE_BITS));
-        MemoryUtil.memPutLong(upload, size | count | x | y);
-        MemoryUtil.memPutLong(upload + 8, z | transformationId);
+        upload = upload.duplicate();
+        upload.putLong(size | count | x | y);
+        upload.putLong( z | transformationId);
     }
 
     public int getSectionRefId(int section) {
@@ -143,7 +145,7 @@ public class RegionManager {
     // Returns a pointer to where the section data can be read or updated
     // it has a lifetime of until any other function call to this class instance
     // will mark the region as dirty and needing an update
-    public long setSectionData(int sectionId) {
+    public ByteBuffer setSectionData(int sectionId) {
         var region = this.regions[sectionId >>> 8];
         sectionId &= 0xFF;
         sectionId = region.pos2id[sectionId];
@@ -151,7 +153,7 @@ public class RegionManager {
             throw new IllegalStateException();
         }
         this.markDirty(region);
-        return region.sectionData + (sectionId * SectionManager.SECTION_SIZE);
+        return region.sectionData.duplicate().position(region.sectionData.position()+ (sectionId * SectionManager.SECTION_SIZE));
     }
 
     public void removeSection(int sectionId) {
@@ -165,9 +167,8 @@ public class RegionManager {
 
         // Set the metadata of the section to empty
         MemoryUtil.memSet(
-            region.sectionData + (long) sectionId * SectionManager.SECTION_SIZE,
-            0,
-            SectionManager.SECTION_SIZE);
+            region.sectionData.slice(region.sectionData.position() + sectionId * SectionManager.SECTION_SIZE, SectionManager.SECTION_SIZE),
+            0);
         region.pos2id[sectionPos] = -1;
         region.id2pos[sectionId] = -1;
         region.verifyIntegrity();
@@ -181,13 +182,10 @@ public class RegionManager {
             }
             // Copy the data from the last element to the now vacant slot
             MemoryUtil.memCopy(
-                region.sectionData + (long) endId * SectionManager.SECTION_SIZE,
-                region.sectionData + (long) sectionId * SectionManager.SECTION_SIZE,
-                SectionManager.SECTION_SIZE);
+                region.sectionData.slice(region.sectionData.position() +  endId * SectionManager.SECTION_SIZE, SectionManager.SECTION_SIZE),
+                region.sectionData.slice(region.sectionData.position() +  sectionId * SectionManager.SECTION_SIZE, SectionManager.SECTION_SIZE));
             MemoryUtil.memSet(
-                region.sectionData + (long) endId * SectionManager.SECTION_SIZE,
-                0,
-                SectionManager.SECTION_SIZE);
+                region.sectionData.slice(region.sectionData.position() + endId * SectionManager.SECTION_SIZE, SectionManager.SECTION_SIZE), 0);
 
             if (region.id2pos[endId] == -1 || region.pos2id[oldPos] == -1) {
                 throw new IllegalStateException();
@@ -202,11 +200,10 @@ public class RegionManager {
             // needs to change
             // to the region needs to change
 
-            long ptr = region.sectionData + (long) sectionId * SectionManager.SECTION_SIZE + 4;
-            int data = MemoryUtil.memGetInt(ptr);
+            int data = region.sectionData.getInt(region.sectionData.position() +  sectionId * SectionManager.SECTION_SIZE + 4);
             data &= ~(0xFF << 18);
             data |= sectionId << 18;
-            MemoryUtil.memPutInt(ptr, data);
+            region.sectionData.putInt(region.sectionData.position() +  sectionId * SectionManager.SECTION_SIZE + 4, data);
 
             region.verifyIntegrity();
         }
@@ -366,16 +363,16 @@ public class RegionManager {
         // Contains also all the metadata about the sections within, then on commit, upload the entire regions metadata
         // this should :tm: _drastically_ improve performance when mass edits are done to the world and the section
         // metadata
-        private final long sectionData = MemoryUtil.nmemAlloc(8 * 4 * 8 * SectionManager.SECTION_SIZE);
+        private final ByteBuffer sectionData = MemoryUtil.memAlloc(8 * 4 * 8 * SectionManager.SECTION_SIZE);
 
         private Region(int id, int rx, int ry, int rz) {
             Arrays.fill(this.pos2id, -1);
             Arrays.fill(this.id2pos, -1);
 
-            MemoryUtil.memSet(sectionData, 0, 256 * SectionManager.SECTION_SIZE);
+            MemoryUtil.memSet(sectionData.slice(sectionData.position(), 256*SectionManager.SECTION_SIZE), 0);
             // Init translucencyIndex to -1
             for (int i = 0; i < 256; i++) {
-                MemoryUtil.memSet(sectionData + (SectionManager.SECTION_SIZE * i) + 32, -1, 16);
+                MemoryUtil.memSet(sectionData.slice(sectionData.position() +  (SectionManager.SECTION_SIZE * i) + 32, 16), -1);
             }
 
             this.key = ChunkSectionPos.asLong(rx, ry, rz);
@@ -387,7 +384,7 @@ public class RegionManager {
         }
 
         public void delete() {
-            MemoryUtil.nmemFree(this.sectionData);
+            MemoryUtil.memFree(this.sectionData);
         }
 
         public void verifyIntegrity() {

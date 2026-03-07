@@ -9,6 +9,7 @@ import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 import static org.lwjgl.opengl.GL42C.GL_BUFFER_UPDATE_BARRIER_BIT;
 import static org.lwjgl.opengl.GL44.GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -39,7 +40,7 @@ public class UploadingBufferStream {
     private long caddr = -1;
     private long offset = 0;
 
-    public long upload(Buffer buffer, long destOffset, long size) {
+    public ByteBuffer upload(Buffer buffer, long destOffset, long size) {
         if (size > Integer.MAX_VALUE || size == 0 || size < 0) {
             throw new IllegalArgumentException();
         }
@@ -80,8 +81,9 @@ public class UploadingBufferStream {
         }
 
         this.uploadList.add(new UploadData(buffer, addr, destOffset, size));
-
-        return this.uploadBuffer.addr + addr;
+        ByteBuffer buff = this.uploadBuffer.clientBuffer().duplicate();
+        buff.position(buff.position() + (int)addr);
+        return buff;
     }
 
     public void commit() {

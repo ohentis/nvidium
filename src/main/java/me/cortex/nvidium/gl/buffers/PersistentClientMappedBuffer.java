@@ -9,27 +9,28 @@ import static org.lwjgl.opengl.NVShaderBufferLoad.*;
 import me.cortex.nvidium.gl.GlObject;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 
+import java.nio.ByteBuffer;
+
 @Lwjgl3Aware
 public class PersistentClientMappedBuffer extends GlObject implements IClientMappedBuffer {
 
-    public final long addr;
     public final long size;
+    public final ByteBuffer buffer;
 
     public PersistentClientMappedBuffer(long size) {
         super(glCreateBuffers());
         this.size = size;
         glNamedBufferStorage(id, size, GL_MAP_PERSISTENT_BIT | (GL_CLIENT_STORAGE_BIT | GL_MAP_WRITE_BIT));
-        addr = nglMapNamedBufferRange(
+        buffer = glMapNamedBufferRange(
             id,
             0,
             size,
             GL_MAP_PERSISTENT_BIT | (GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_WRITE_BIT));
     }
 
+
     @Override
-    public long clientAddress() {
-        return addr;
-    }
+    public ByteBuffer clientBuffer() { return buffer ;}
 
     @Override
     public void delete() {

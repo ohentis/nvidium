@@ -1,6 +1,6 @@
 package me.cortex.nvidium;
 
-import static me.cortex.nvidium.gl.buffers.PersistentSparseAddressableBuffer.alignUp;
+import static me.cortex.nvidium.gl.buffers.SparseSsboBuffer.alignUp;
 import static org.lwjgl.opengl.ARBShaderImageLoadStore.GL_COMMAND_BARRIER_BIT;
 import static org.lwjgl.opengl.ARBShaderImageLoadStore.GL_FRAMEBUFFER_BARRIER_BIT;
 import static org.lwjgl.opengl.ARBShaderImageLoadStore.glMemoryBarrier;
@@ -168,12 +168,11 @@ public class RenderPipeline {
 
         // Initialize the transformationArray buffer to the identity affine transform
         {
-            long ptr = this.uploadStream
+            ByteBuffer ptr = this.uploadStream
                 .upload(this.transformationArray, 0, RegionManager.MAX_TRANSFORMATION_COUNT * (4 * 4 * 4));
             var transform = new Matrix4f().identity();
             for (int i = 0; i < RegionManager.MAX_TRANSFORMATION_COUNT; i++) {
-                transform.getToAddress(ptr);
-                ptr += 4 * 4 * 4;
+                transform.get(ptr);
             }
         }
         // Clear the origin offset
@@ -185,21 +184,20 @@ public class RenderPipeline {
         if (id < 0 || id >= RegionManager.MAX_TRANSFORMATION_COUNT) {
             throw new IllegalArgumentException("Id out of bounds: " + id);
         }
-        long ptr = this.uploadStream.upload(this.transformationArray, id * (4 * 4 * 4), 4 * 4 * 4);
-        transform.getToAddress(ptr);
+        ByteBuffer ptr = this.uploadStream.upload(this.transformationArray, id * (4 * 4 * 4), 4 * 4 * 4);
+        transform.get(ptr);
     }
 
     public void setOrigin(int id, int x, int y, int z) {
         if (id < 0 || id >= RegionManager.MAX_TRANSFORMATION_COUNT) {
             throw new IllegalArgumentException("Id out of bounds: " + id);
         }
-        long ptr = this.uploadStream.upload(this.originOffsetArray, id * 8, 8);
+        ByteBuffer ptr = this.uploadStream.upload(this.originOffsetArray, id * 8, 8);
         long pos = 0;
         pos |= x & 0x1ffffff;
         pos |= ((long) (z & 0x1ffffff)) << 25;
         pos |= ((long) (y & 0x3fff)) << 50;
-
-        MemoryUtil.memPutLong(ptr, pos);
+        ptr.putLong(pos);
     }
 
     private int prevRegionCount;
@@ -313,12 +311,11 @@ public class RenderPipeline {
 
             regionMap = new short[regions.size()];
             if (visibleRegions == 0) return;
-            long addr = uploadStream.upload(regionIndicies, 0, visibleRegions * 4L);
-            queryAddr = addr;// This is ungodly hacky
+            ByteBuffer addr = uploadStream.upload(regionIndicies, 0, visibleRegions * 4L);
             int j = 0;
             for (int i : regions) {
                 regionMap[j] = (short) i;
-                MemoryUtil.memPutInt(addr + ((long) j << 2), i & 0xFFFF);
+                addr.putInt(i & 0xFFFF);
                 j++;
             }
 
@@ -333,45 +330,31 @@ public class RenderPipeline {
                 (float) (py - (chunkPos.y << 4)),
                 (float) (pz - (chunkPos.z << 4)));
             delta.negate();
-            long addr = uploadStream.upload(sceneUniform, 0, SCENE_SIZE);
+            ByteBuffer addr = uploadStream.upload(sceneUniform, 0, SCENE_SIZE);
             new Matrix4f(crm.projection()).mul(crm.modelView())
                 .translate(delta)// Translate the subchunk position
-                .getToAddress(addr);
-            addr += 4 * 4 * 4;
+                .get(addr);
             if (this.compiledForFog) {
                 new Matrix4f(crm.projection()).mul(crm.modelView())
                     .invert()
-                    .getToAddress(addr);
-                addr += 4 * 4 * 4;
+                    .get(addr);
             }
-            new Vector4i(chunkPos.x, chunkPos.y, chunkPos.z, 0).getToAddress(addr);// Chunk the camera is in
-            addr += 16;
-            new Vector4f(new Vector3f(delta), 0).getToAddress(addr);// Subchunk offset (note, delta is already negated)
-            addr += 16;
-            new Vector4f(0, 0, 0, 1).getToAddress(addr); // Fog color
-            addr += 16;
+            new Vector4i(chunkPos.x, chunkPos.y, chunkPos.z, 0).get(addr);// Chunk the camera is in
+            new Vector4f(new Vector3f(delta), 0).get(addr);// Subchunk offset (note, delta is already negated)
+            new Vector4f(0, 0, 0, 1).get(addr); // Fog color
             // Convert it into the expected size values and floats
-            MemoryUtil.memPutFloat(addr, ((float) screenWidth) / 2);
-            addr += 4;
-            MemoryUtil.memPutFloat(addr, ((float) screenHeight) / 2);
-            addr += 4;
-            MemoryUtil.memPutFloat(addr, subTexelWidth);
-            addr += 4;
-            MemoryUtil.memPutFloat(addr, subTexelHeight);
-            addr += 4;
-            MemoryUtil.memPutFloat(addr, 0);// FogStart
-            addr += 4;
-            MemoryUtil.memPutFloat(addr, 0);// FogEnd
-            addr += 4;
-            MemoryUtil.memPutInt(addr, 0);// IsSphericalFog
-            addr += 4;
+            addr.putFloat(((float) screenWidth) / 2);
+            addr.putFloat(((float) screenHeight) / 2);
+            addr.putFloat(subTexelWidth);
+            addr.putFloat(subTexelHeight);
+            addr.putFloat(0);
+            addr.putFloat(0);
+            addr.putFloat(0);
             int flags = 0;
             flags |= Nvidium.Compat.getUseBlockFaceCulling() ? 1 : 0;
-            MemoryUtil.memPutInt(addr, flags);// Flags
-            addr += 4;
-            MemoryUtil.memPutInt(addr, visibleRegions);
-            addr += 4;
-            MemoryUtil.memPutInt(addr, frameId++);
+            addr.putInt(flags);
+            addr.putInt(visibleRegions);
+            addr.putInt(frameId++);
         }
 
         if (Nvidium.config.translucency_sorting_level == TranslucencySortingLevel.NONE) {
@@ -381,10 +364,9 @@ public class RenderPipeline {
         int regionSortSize = this.regionsToSort.size();
 
         if (regionSortSize != 0) {
-            long regionSortUpload = uploadStream.upload(regionSortingList, 0, regionSortSize * 4L);
+            ByteBuffer regionSortUpload = uploadStream.upload(regionSortingList, 0, regionSortSize * 4L);
             for (int region : regionsToSort) {
-                MemoryUtil.memPutInt(regionSortUpload, region);
-                regionSortUpload += 4;
+                regionSortUpload.putInt(region);
             }
             regionsToSort.clear();
         }
@@ -531,18 +513,20 @@ public class RenderPipeline {
         // Download statistics
         if (Nvidium.config.statistics_level.ordinal() > StatisticsLoggingLevel.FRUSTUM.ordinal()) {
             downloadStream.download(statisticsBuffer, 0, 4 * 4, (addr) -> {
-                stats.regionCount = MemoryUtil.memGetInt(addr);
-                stats.sectionCount = MemoryUtil.memGetInt(addr + 4);
-                stats.quadCount = MemoryUtil.memGetInt(addr + 8);
-                stats.cullCount = MemoryUtil.memGetInt(addr + 12);
+
+                addr = addr.duplicate();
+                stats.regionCount = addr.getInt();
+                stats.sectionCount = addr.getInt();
+                stats.quadCount = addr.getInt();
+                stats.cullCount = addr.getInt();
             });
         }
 
         if (Nvidium.config.statistics_level.ordinal() > StatisticsLoggingLevel.FRUSTUM.ordinal()) {
             // glMemoryBarrier(GL_ALL_BARRIER_BITS);
             // Stupid bloody nvidia not following spec forcing me to use a upload stream
-            long upload = this.uploadStream.upload(statisticsBuffer, 0, 4 * 4);
-            MemoryUtil.memSet(upload, 0, 4 * 4);
+            ByteBuffer upload = this.uploadStream.upload(statisticsBuffer, 0, 4 * 4);
+            MemoryUtil.memSet(upload.slice(upload.position(), 4 * 4), 0);
             // glClearNamedBufferSubData(statisticsBuffer.getId(), GL_R32UI, 0, 4 * 4, GL_RED_INTEGER, GL_UNSIGNED_INT,
             // new int[]{0});
         }
