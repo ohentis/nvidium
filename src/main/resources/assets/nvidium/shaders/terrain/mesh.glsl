@@ -29,6 +29,7 @@ out Interpolants {
 #endif
     vec2 uv;
     vec3 v_colour;
+    vec4 pad;
 } OUT[];
 #endif
 

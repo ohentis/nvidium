@@ -27,6 +27,7 @@ in Interpolants {
 
     vec2 uv;
     vec3 v_colour;
+    vec4 pad;
 };
 #endif
 
