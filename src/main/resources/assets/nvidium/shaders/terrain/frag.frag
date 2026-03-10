@@ -27,7 +27,7 @@ layout(location = 1) in Interpolants {
 
     vec2 uv;
     vec3 v_colour;
-};
+} IN;
 #endif
 
 Vertex V0;
@@ -49,6 +49,8 @@ void applyFog(inout vec3 colour) {
     vec4 clip = (MVPInv * vec4((gl_FragCoord.xy/screenSize)-1, gl_FragCoord.z*2-1, 1));
     vec3 pos = clip.xyz/clip.w;
     float fogLerp = clamp(computeFogLerp(pos, isCylindricalFog, fogStart, fogEnd) * float(fogColour.a) /255, 0,1);
+#else
+    float fogLerp = IN.fogLerp;
 #endif
     colour = mix(colour, fogColour.rgb, fogLerp);
 }
@@ -81,7 +83,7 @@ void main() {
         }
     #else
         float lodBias = hasMipping(V0)?0.0f:-4.0f;
-        colour = texture(tex_diffuse, uv, lodBias);
+        colour = texture(tex_diffuse, IN.uv, lodBias);
     #endif
 
     #ifndef TRANSLUCENT_PASS
@@ -93,7 +95,7 @@ void main() {
     #ifdef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
         computeOutputColour(colour.rgb);
     #else
-        colour.rgb *= v_colour;
+        colour.rgb *= IN.v_colour;
     #endif
 
     #ifdef RENDER_FOG
