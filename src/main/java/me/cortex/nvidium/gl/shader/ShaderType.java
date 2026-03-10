@@ -17,7 +17,8 @@ public enum ShaderType {
     COMPUTE(GL_COMPUTE_SHADER),
     MESH_NV(GL_MESH_SHADER_NV),
     MESH_EXT(GL_MESH_SHADER_EXT),
-    TASK(GL_TASK_SHADER_NV);
+    TASK_NV(GL_TASK_SHADER_NV),
+    TASK_EXT(0x955A);
 
     public final int gl;
 

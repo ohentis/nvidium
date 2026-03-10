@@ -14,7 +14,7 @@ import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 public class SectionRasterizer extends Phase {
 
     private final Shader shader = Shader.make()
-        .addSource(TASK, ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/section_raster/task.glsl")))
+        .addSource(getCapabilities().GL_EXT_mesh_shader ? TASK_EXT : TASK_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/section_raster/task.glsl")))
         .addSource(getCapabilities().GL_EXT_mesh_shader ? MESH_EXT : MESH_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/section_raster/mesh.glsl")))
         .addSource(
             FRAGMENT,

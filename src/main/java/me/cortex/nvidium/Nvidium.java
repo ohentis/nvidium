@@ -48,6 +48,9 @@ public class Nvidium {
         } else {
             LOGGER.warn("Not all requirements met, disabling nvidium");
         }
+        if(cap.GL_EXT_mesh_shader) {
+            LOGGER.info("We are using GL_EXT_mesh_shader");
+        }
         SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER = cap.GL_ARB_sparse_buffer;
         if (IS_COMPATIBLE && Util.getOSType() == Util.EnumOS.LINUX) {
             LOGGER.warn(

@@ -30,7 +30,7 @@ public class TranslucentTerrainRasterizer extends Phase {
     private final int lightSampler = glGenSamplers();
 
     private final Shader shader = Shader.make()
-        .addSource(TASK, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/translucent/task.glsl")))
+        .addSource(getCapabilities().GL_EXT_mesh_shader ? TASK_EXT :TASK_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/translucent/task.glsl")))
         .addSource(getCapabilities().GL_EXT_mesh_shader ? MESH_EXT : MESH_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/translucent/mesh.glsl")))
         .addSource(
             FRAGMENT,
