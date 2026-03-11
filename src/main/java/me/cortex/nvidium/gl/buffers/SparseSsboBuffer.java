@@ -13,6 +13,7 @@ import org.lwjgl.opengl.GL21;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import me.cortex.nvidium.gl.GlObject;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+import org.lwjgl.opengl.GL30C;
 
 @Lwjgl3Aware
 public class SparseSsboBuffer extends GlObject implements Buffer {
@@ -31,6 +32,10 @@ public class SparseSsboBuffer extends GlObject implements Buffer {
         super(glCreateBuffers());
         this.size = alignUp(size, PAGE_SIZE);
         glNamedBufferStorage(id, size, GL_DYNAMIC_STORAGE_BIT | GL_SPARSE_STORAGE_BIT_ARB);
+        int err = GL30C.glGetError();
+        if (err != 0) {
+            throw new IllegalStateException("glNamedBufferStorage failed: " + err + " size=" + size);
+        }
     }
 
     private static void doCommit(int buffer, long offset, long size, boolean commit) {

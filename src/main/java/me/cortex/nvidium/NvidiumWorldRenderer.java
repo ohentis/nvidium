@@ -27,6 +27,7 @@ import me.cortex.nvidium.sodiumCompat.NvidiumCompactChunkVertex;
 import me.cortex.nvidium.util.DownloadTaskStream;
 import me.cortex.nvidium.util.UploadingBufferStream;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+import org.lwjgl.opengl.GL;
 
 @Lwjgl3Aware
 public class NvidiumWorldRenderer {
@@ -156,10 +157,10 @@ public class NvidiumWorldRenderer {
     }
 
     private void update_allowed_memory() {
-        if (Nvidium.config.automatic_memory) {
+        if (Nvidium.config.automatic_memory && GL.getCapabilities().GL_NVX_gpu_memory_info) {
             max_geometry_memory = (glGetInteger(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX) / 1024)
                 + (sectionManager == null ? 0 : sectionManager.terrainAreana.getMemoryUsed() / (1024 * 1024));
-            max_geometry_memory -= 1024;// Minus 1gb of vram
+            max_geometry_memory -= 2048;// Minus 2gb of vram
             max_geometry_memory = Math.max(2048, max_geometry_memory);// Minimum 2 gb of vram
         } else {
             max_geometry_memory = Nvidium.config.max_geometry_memory;

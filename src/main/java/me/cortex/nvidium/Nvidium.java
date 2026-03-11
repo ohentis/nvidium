@@ -17,6 +17,7 @@ import me.cortex.nvidium.sodiumCompat.BeddiumCompat;
 import me.cortex.nvidium.sodiumCompat.ISodiumCalls;
 import me.cortex.nvidium.sodiumCompat.IrisCheck;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+import org.lwjgl.opengl.GL11;
 
 @Lwjgl3Aware
 @Mod(
@@ -52,9 +53,11 @@ public class Nvidium {
             LOGGER.info("We are using GL_EXT_mesh_shader");
         }
         SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER = cap.GL_ARB_sparse_buffer;
-        if (IS_COMPATIBLE && Util.getOSType() == Util.EnumOS.LINUX) {
+        String renderer = GL11.glGetString(GL11.GL_RENDERER);
+        boolean isMesa = renderer != null && (renderer.toLowerCase().contains("mesa") || renderer.toLowerCase().contains("zink"));
+        if (IS_COMPATIBLE && isMesa) {
             LOGGER.warn(
-                "Linux currently uses fallback terrain buffer due to driver inconsistencies, expect increase vram usage");
+                "Mesa currently uses fallback terrain buffer due to driver inconsistencies, expect increase vram usage");
             SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER = false;
         }
 

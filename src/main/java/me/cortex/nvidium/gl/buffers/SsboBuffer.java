@@ -7,6 +7,7 @@ import org.lwjgl.opengl.ARBDirectStateAccess;
 
 import me.cortex.nvidium.gl.GlObject;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+import org.lwjgl.opengl.GL30C;
 
 @Lwjgl3Aware
 public class SsboBuffer extends GlObject implements Buffer {
@@ -17,6 +18,10 @@ public class SsboBuffer extends GlObject implements Buffer {
         super(ARBDirectStateAccess.glCreateBuffers());
         this.size = size;
         glNamedBufferStorage(id, size, 0);
+        int err = GL30C.glGetError();
+        if (err != 0) {
+            throw new IllegalStateException("glNamedBufferStorage failed: " + err + " size=" + size);
+        }
     }
 
     @Override
