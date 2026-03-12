@@ -61,10 +61,12 @@ void main() {
     regionTransform = getRegionTransformation(data);
 
     chunkShift = (-chunkPosition.xyz) - unpackOriginOffsetId(unpackRegionTransformId(data));
-    EMIT_MESH_TASKS(count,1,1);
+
 
     terrainCommandBuffer[cmdIdx] = uvec2(uint(count), _visOutBase);
     //TODO: add a bit to the region header to determine whether or not a region has any translucent
     // sections, if it doesnt, write 0 to the command buffer
     translucencyCommandBuffer[transCmdIdx] = uvec2(uint(count), _visOutBase);
+
+    EMIT_MESH_TASKS(count,1,1);
 }

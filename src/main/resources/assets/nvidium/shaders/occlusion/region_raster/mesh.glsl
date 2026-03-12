@@ -34,7 +34,6 @@ void emitParital(int visIndex) {
     SET_MESH_PRIMITIVE_TRIANGLE_INDICIES((gl_LocalInvocationID.x+8), 1, PILUTTE[gl_LocalInvocationID.x]);
     SET_MESH_PRIMITIVE_TRIANGLE_INDICIES((gl_LocalInvocationID.x+8), 2, PILUTTF[gl_LocalInvocationID.x]);
     MESHPRIMITIVES[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
-    SET_MESH_OUTPUTS(48,12);
 }
 
 void main() {
@@ -49,6 +48,7 @@ void main() {
         SET_MESH_OUTPUTS(0,0);
         return;
     }
+    SET_MESH_OUTPUTS(48,12);
 
     ivec3 pos = unpackRegionPosition(data);
     pos -= chunkPosition.xyz;

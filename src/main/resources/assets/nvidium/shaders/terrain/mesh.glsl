@@ -111,9 +111,6 @@ void putVertex(uint id, Vertex V) {
 }
 
 void main() {
-    if (gl_LocalInvocationIndex == 0) {
-        SET_MESH_OUTPUTS(0,0);
-    }
 
     uint quadId = getOffset();
 
@@ -170,6 +167,9 @@ void main() {
     uint triIndex = subgroupExclusiveAdd(uint(draw));
     uint vertBase = subgroupExclusiveAdd(draw ? 2 : 1);
     uint totalTris = subgroupMax(triIndex+uint(draw));
+    if (subgroupElect()) {
+        SET_MESH_OUTPUTS(totalTris * 3, totalTris);
+    }
 
 #ifdef STATISTICS_CULL
     atomicAdd(statistics_buffer+3, uint(!draw)); // Count culled triangles
@@ -191,9 +191,5 @@ void main() {
 
         // Emit primitive
         MESHPRIMITIVES[triIndex++].gl_PrimitiveID = int(quadId<<1) | (triangle0 ? 0 : 1);
-    }
-
-    if (subgroupElect()) {
-        SET_MESH_OUTPUTS(totalTris * 3, totalTris);
     }
 }

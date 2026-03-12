@@ -161,6 +161,8 @@ void performTranslucencySort() {
 
 //TODO: extra per quad culling
 void main() {
+    uint tris = min(uint(int(quadCount)-int(gl_WorkGroupID.x<<5))<<1, 64);//2 primatives per quad
+    SET_MESH_OUTPUTS(tris * 3, tris);
     #ifdef TRANSLUCENCY_SORTING_QUADS
     depthBuffers[gl_LocalInvocationID.x] = -99999999f;
     #endif
@@ -211,11 +213,5 @@ void main() {
 
     MESHPRIMITIVES[(gl_LocalInvocationID.x<<1)].gl_PrimitiveID = int((id>>2)<<1)|0;
     MESHPRIMITIVES[(gl_LocalInvocationID.x<<1)|1].gl_PrimitiveID = int((id>>2)<<1)|1;
-
-    if (gl_LocalInvocationID.x == 0) {
-        //Remaining quads in workgroup
-        uint tris = min(uint(int(quadCount)-int(gl_WorkGroupID.x<<5))<<1, 64);//2 primatives per quad
-        SET_MESH_OUTPUTS(tris * 3, tris);
-    }
 
 }

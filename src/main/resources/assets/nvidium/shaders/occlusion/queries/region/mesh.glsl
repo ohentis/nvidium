@@ -34,10 +34,10 @@ void emitParital(int visIndex) {
     SET_MESH_PRIMITIVE_TRIANGLE_INDICIES((gl_LocalInvocationID.x+8), 1, PILUTTE[gl_LocalInvocationID.x]);
     SET_MESH_PRIMITIVE_TRIANGLE_INDICIES((gl_LocalInvocationID.x+8), 2, PILUTTF[gl_LocalInvocationID.x]);
     MESHPRIMITIVES[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
-    SET_MESH_OUTPUTS(48,12);
 }
 
 void main() {
+    SET_MESH_OUTPUTS(48,12);
     //FIXME: It might actually be more efficent to just upload the region data straight into the ubo
     // this remove an entire level of indirection and also puts region data in the very fast path
     Region data = regionData[regionIndicies[gl_WorkGroupID.x]];//fetch the region data

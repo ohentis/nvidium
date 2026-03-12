@@ -51,7 +51,6 @@ void emitParital(int visIndex) {
     SET_MESH_PRIMITIVE_TRIANGLE_INDICIES((gl_LocalInvocationID.x+8), 1, PILUTTE[gl_LocalInvocationID.x]);
     SET_MESH_PRIMITIVE_TRIANGLE_INDICIES((gl_LocalInvocationID.x+8), 2, PILUTTF[gl_LocalInvocationID.x]);
     MESHPRIMITIVES[gl_LocalInvocationID.x+8].gl_PrimitiveID = visIndex;
-    SET_MESH_OUTPUTS(48,12);
 }
 
 //TODO: Check if the section can be culled via fog
@@ -69,12 +68,13 @@ void main() {
     // 0,0,0 the only block in the chunk and the first thing in the buffer
     // to fix, also check that the ranges are null
     if (sectionEmpty(header) || (header.y&(1<<17)) != 0) {
+        SET_MESH_OUTPUTS(0,0);
         if (gl_LocalInvocationID.x == 0) {
             sectionVisibility[visibilityIndex] = 0;
-            SET_MESH_OUTPUTS(0,0);
         }
         return;
     }
+    SET_MESH_OUTPUTS(48,12);
 
     vec3 mins = (header.xyz&0xF)-ADD_SIZE;
     vec3 maxs = mins+((header.xyz>>4)&0xF)+1+(ADD_SIZE*2);
@@ -106,6 +106,5 @@ void main() {
         //Shift and set, this gives us a bonus of having the last 8 frames as visibility history
         sectionVisibility[visibilityIndex] = uint(lastData<<1) | uint(isInSection?1:0);//Inject visibility aswell
         //sectionVisibility[visibilityIndex] = uint8_t(lastData<<1) | uint8_t(0);
-        SET_MESH_OUTPUTS(48,12);
     }
 }
