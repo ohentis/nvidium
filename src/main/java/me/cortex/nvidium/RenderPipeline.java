@@ -154,8 +154,8 @@ public class RenderPipeline {
         regionIndicies = new SsboBuffer(maxRegions * 4L);
         regionVisibility = new SsboBuffer(maxRegions * 4L);
         sectionVisibility = new SsboBuffer(maxRegions * 1024L);
-        terrainCommandBuffer = new SsboBuffer(maxRegions * 8L);
-        translucencyCommandBuffer = new SsboBuffer(maxRegions * 8L);
+        terrainCommandBuffer = new SsboBuffer(maxRegions * 16L);
+        translucencyCommandBuffer = new SsboBuffer(maxRegions * 16L);
         regionSortingList = new SsboBuffer(maxRegions * 4L);
         this.transformationArray = new SsboBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * (4 * 4 * 4));
         this.originOffsetArray = new SsboBuffer(RegionManager.MAX_TRANSFORMATION_COUNT * 8);

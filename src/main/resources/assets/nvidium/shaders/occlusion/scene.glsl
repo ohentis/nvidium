@@ -125,10 +125,10 @@ layout(std430, binding=5) restrict buffer SectionVisibility {
     uint sectionVisibility[];
 };
 layout(std430, binding=6) writeonly restrict buffer TerrainCommandBuffer {
-    uvec2 terrainCommandBuffer[];
+    uvec3 terrainCommandBuffer[];
 };
 layout(std430, binding=7) writeonly restrict buffer TranslucencyCommandBuffer {
-    uvec2 translucencyCommandBuffer[];
+    uvec3 translucencyCommandBuffer[];
 };
 layout(std430, binding=8) readonly restrict buffer SortingRegionList {
     uint sortingRegionList[];

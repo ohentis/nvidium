@@ -50,6 +50,7 @@ void main() {
         ivec4 header = sectionData[sectionId].header;
         //If the section is empty, we dont care about it at all, so ignore it and return
         if (sectionEmpty(header)) {
+            EMIT_MESH_TASKS(0,0,0);
             return;
         }
         //Compute the redirected section index

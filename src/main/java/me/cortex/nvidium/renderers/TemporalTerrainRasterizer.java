@@ -60,7 +60,7 @@ public class TemporalTerrainRasterizer extends Phase {
         GL45C.glBindSampler(1, lightSampler);
 
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBufferId);
-        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 0);
+        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 16);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 
         GL45C.glBindSampler(0, 0);

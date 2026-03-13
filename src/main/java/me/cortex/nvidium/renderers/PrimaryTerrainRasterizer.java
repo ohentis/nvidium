@@ -66,7 +66,7 @@ public class PrimaryTerrainRasterizer extends Phase {
         if ((err = GL30C.glGetError()) != 0) {
             throw new IllegalStateException("GLERROR: " + err);
         }
-        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 0);
+        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 16);
         if ((err = GL30C.glGetError()) != 0) {
             throw new IllegalStateException("GLERROR: " + err);
         }

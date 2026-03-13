@@ -70,7 +70,7 @@ public class TranslucentTerrainRasterizer extends Phase {
         // the +8*6 is to offset to the unassigned dispatch
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBufferID);
         frameTimeProfiler.startQuery();
-        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 0);
+        MeshShaderDispatcher.INSTANCE.multiDrawMeshTasksIndirect(0, regionCount, 16);
         frameTimeProfiler.endQuery();
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
         GL45C.glBindSampler(0, 0);

@@ -113,10 +113,10 @@ void putVertex(uint id, Vertex V) {
 void main() {
 
     uint quadId = getOffset();
-
+    bool quit = false;
     //If its over, dont render
     if (quadId == uint(-1)) {
-        return;
+        quit = true;
     }
     transformMat = transformationArray[transformationId];
 
@@ -159,16 +159,19 @@ void main() {
 
         // Abort if quad got culled
         if (!(draw || peerDraw)) {
-            return;
+            quit = true;
         }
     }
     #endif
 
-    uint triIndex = subgroupExclusiveAdd(uint(draw));
-    uint vertBase = subgroupExclusiveAdd(draw ? 2 : 1);
-    uint totalTris = subgroupMax(triIndex+uint(draw));
-    if (subgroupElect()) {
-        SET_MESH_OUTPUTS(totalTris * 3, totalTris);
+    uint triIndex = subgroupExclusiveAdd(uint(draw && !quit));
+    uint vertBase = subgroupExclusiveAdd((draw && !quit) ? 2 : 1);
+    uint totalTris = subgroupMax(triIndex+uint(draw && !quit));
+
+    SET_MESH_OUTPUTS(totalTris * 3, totalTris);
+
+    if(quit) {
+        return;
     }
 
 #ifdef STATISTICS_CULL
