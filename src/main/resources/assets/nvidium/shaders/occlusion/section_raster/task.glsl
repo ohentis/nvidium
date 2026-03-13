@@ -40,8 +40,8 @@ void main() {
 
     //Early exit if the region wasnt visible
     if (regionVisibility[gl_WorkGroupID.x] == 0) {
-        terrainCommandBuffer[cmdIdx] = uvec3(0);
-        translucencyCommandBuffer[transCmdIdx] = uvec3(0);
+        terrainCommandBuffer[cmdIdx] = uvec4(0);
+        translucencyCommandBuffer[transCmdIdx] = uvec4(0);
         EMIT_MESH_TASKS(0,0,0);
         return;
     }
@@ -63,15 +63,15 @@ void main() {
     chunkShift = (-chunkPosition.xyz) - unpackOriginOffsetId(unpackRegionTransformId(data));
 
     #ifdef USE_GL_EXT_MESH_SHADERS
-    terrainCommandBuffer[cmdIdx] = uvec3(uint(count), 1,1);
+    terrainCommandBuffer[cmdIdx] = uvec4(uint(count), 1,1,_visOutBase);
     //TODO: add a bit to the region header to determine whether or not a region has any translucent
     // sections, if it doesnt, write 0 to the command buffer
-    translucencyCommandBuffer[transCmdIdx] = uvec3(uint(count),1,1);
+    translucencyCommandBuffer[transCmdIdx] = uvec4(uint(count),1,1,_visOutBase);
     #else
-    terrainCommandBuffer[cmdIdx] = uvec3(uint(count), _visOutBase,0);
+    terrainCommandBuffer[cmdIdx] = uvec4(uint(count), _visOutBase,0,0);
     //TODO: add a bit to the region header to determine whether or not a region has any translucent
     // sections, if it doesnt, write 0 to the command buffer
-    translucencyCommandBuffer[transCmdIdx] = uvec3(uint(count), _visOutBase,0);
+    translucencyCommandBuffer[transCmdIdx] = uvec4(uint(count), _visOutBase,0,0);
     #endif
 
     EMIT_MESH_TASKS(count,1,1);

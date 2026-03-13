@@ -43,7 +43,11 @@ bool shouldRender(uint sectionId) {
 }
 
 void main() {
+    #ifdef USE_GL_EXT_MESH_SHADERS
+    uint sectionId = terrainCommandBuffer[gl_DrawID].w + gl_WorkGroupID.x;
+    #else
     uint sectionId = gl_WorkGroupID.x;
+    #endif
     #ifdef TRANSLUCENCY_SORTING_SECTIONS
     //Compute indirection for translucency sorting
     {

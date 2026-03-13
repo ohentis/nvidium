@@ -22,7 +22,11 @@ bool shouldRenderVisible(uint sectionId) {
 #import <nvidium:terrain/task_common.glsl>
 
 void main() {
+    #ifdef USE_GL_EXT_MESH_SHADERS
+    uint sectionId = terrainCommandBuffer[gl_DrawID].w + gl_WorkGroupID.x;
+    #else
     uint sectionId = gl_WorkGroupID.x;
+    #endif
 
     if (!shouldRenderVisible(sectionId)) {
         //Early exit if the section isnt visible
