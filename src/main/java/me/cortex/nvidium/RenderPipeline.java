@@ -16,6 +16,7 @@ import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL30C.GL_R8UI;
 import static org.lwjgl.opengl.GL30C.GL_RED_INTEGER;
 import static org.lwjgl.opengl.GL30C.glBindBufferBase;
+import static org.lwjgl.opengl.GL32.GL_DEPTH_CLAMP;
 import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
 import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
 import static org.lwjgl.opengl.GL45.nglClearNamedBufferData;
@@ -401,6 +402,7 @@ public class RenderPipeline {
         // Bind the uniform, it doesnt get wiped between shader changes
         bindBuffers();
 
+        glEnable(GL_DEPTH_CLAMP);
         if (prevRegionCount != 0) {
             glEnable(GL_DEPTH_TEST);
             terrainRasterizer.raster(prevRegionCount, terrainCommandBuffer.getId(), primaryFrameTimeProfiler);
@@ -479,6 +481,7 @@ public class RenderPipeline {
         if ((err = GL30C.glGetError()) != 0) {
             throw new IllegalStateException("GLERROR: " + err);
         }
+        glDisable(GL_DEPTH_CLAMP);
 
     }
 
