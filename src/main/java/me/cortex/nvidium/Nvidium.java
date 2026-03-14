@@ -53,8 +53,8 @@ public class Nvidium {
             LOGGER.info("We are using GL_EXT_mesh_shader");
         }
         SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER = cap.GL_ARB_sparse_buffer;
-        String renderer = GL11.glGetString(GL11.GL_RENDERER);
-        boolean isMesa = renderer != null && (renderer.toLowerCase().contains("mesa") || renderer.toLowerCase().contains("zink"));
+        String version = GL11.glGetString(GL11.GL_VERSION);
+        boolean isMesa = version != null && (version.toLowerCase().contains("mesa"));
         if (IS_COMPATIBLE && isMesa) {
             LOGGER.warn(
                 "Mesa currently uses fallback terrain buffer due to driver inconsistencies, expect increase vram usage");
