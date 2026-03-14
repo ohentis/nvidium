@@ -42,7 +42,7 @@ taskPayloadSharedEXT Task taskIn;
 #define originAndBaseData taskIn.originAndBaseData
 #define quadCount taskIn.quadCount
 #define jiggle taskIn.jiggle
-#define translucencyIndex taskIn.translucencyIndex;
+#define translucencyIndex taskIn.translucencyIndex
 #else
 taskNV in Task { TASK_FIELDS };
 #endif
