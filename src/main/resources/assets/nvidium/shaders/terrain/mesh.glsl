@@ -20,7 +20,7 @@ layout(binding = 1) uniform sampler2D tex_light;
 
 //It seems like for terrain at least, the sweat spot is ~16 quads per mesh invocation (even if the local size is not 32 )
 layout(local_size_x = 32) in;
-layout(triangles, max_vertices=64, max_primitives=32) out;
+layout(triangles, max_vertices=96, max_primitives=32) out;
 
 #ifndef USE_NV_FRAGMENT_SHADER_BARYCENTRIC
 layout(location = 1) out Interpolants {

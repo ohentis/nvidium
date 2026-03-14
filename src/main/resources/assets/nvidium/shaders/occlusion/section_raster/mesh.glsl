@@ -15,7 +15,7 @@
 
 #define ADD_SIZE (0.1f)
 layout(local_size_x = 8) in;
-layout(triangles, max_vertices=8, max_primitives=12) out;
+layout(triangles, max_vertices=48, max_primitives=12) out;
 
 #define TASK_FIELDS uint _visOutBase; \
     uint _offset; \

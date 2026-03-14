@@ -13,7 +13,7 @@
 
 //TODO: maybe do multiple cubes per workgroup? this would increase utilization of individual sm's
 layout(local_size_x = 8) in;
-layout(triangles, max_vertices=8, max_primitives=12) out;
+layout(triangles, max_vertices=48, max_primitives=12) out;
 
 const uint PILUTTA[] = {0, 1, 0, 6, 0, 5, 1, 7};
 const uint PILUTTB[] = {1, 3, 2, 4, 4, 1, 5, 3};
