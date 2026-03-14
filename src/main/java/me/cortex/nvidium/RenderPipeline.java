@@ -442,7 +442,9 @@ public class RenderPipeline {
         }
 
         sectionRasterizer.raster(visibleRegions);
-        glDisable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
+        if(GL.getCapabilities().GL_NV_representative_fragment_test) {
+            glDisable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
+        }
         glDepthMask(true);
         glColorMask(true, true, true, true);
 
@@ -463,8 +465,9 @@ public class RenderPipeline {
                 glEnable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
             }
             regionVisibilityTracking.computeVisibility(visibleRegions, regionVisibility, regionMap);
-
-            glDisable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
+            if(GL.getCapabilities().GL_NV_representative_fragment_test) {
+                glDisable(GL_REPRESENTATIVE_FRAGMENT_TEST_NV);
+            }
             glDepthMask(true);
             glColorMask(true, true, true, true);
         }
