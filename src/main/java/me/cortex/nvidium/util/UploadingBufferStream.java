@@ -8,9 +8,7 @@ import static org.lwjgl.opengl.GL11.glFinish;
 import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 import static org.lwjgl.opengl.GL42C.GL_BUFFER_UPDATE_BARRIER_BIT;
 import static org.lwjgl.opengl.GL44.GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT;
-import static org.lwjgl.system.MemoryUtil.memByteBufferSafe;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -84,10 +82,6 @@ public class UploadingBufferStream {
         this.uploadList.add(new UploadData(buffer, addr, destOffset, size));
 
         return this.uploadBuffer.addr + addr;
-    }
-
-    public ByteBuffer uploadbb(Buffer buffer, long destOffset, long size) {
-        return memByteBufferSafe(upload(buffer, destOffset, size), (int) size);
     }
 
     public void commit() {

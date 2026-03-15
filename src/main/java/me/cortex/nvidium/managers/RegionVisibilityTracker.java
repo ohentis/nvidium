@@ -6,7 +6,6 @@ import static me.cortex.nvidium.gl.shader.ShaderType.MESH_NV;
 import static org.lwjgl.opengl.GL.getCapabilities;
 import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
-import static org.lwjgl.system.MemoryUtil.memByteBufferSafe;
 
 import net.minecraft.util.ResourceLocation;
 
@@ -18,8 +17,6 @@ import me.cortex.nvidium.gl.shader.Shader;
 import me.cortex.nvidium.sodiumCompat.ShaderLoader;
 import me.cortex.nvidium.util.DownloadTaskStream;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
-
-import java.nio.ByteBuffer;
 
 @Lwjgl3Aware
 public class RegionVisibilityTracker {
@@ -53,16 +50,15 @@ public class RegionVisibilityTracker {
         fram++;
         MeshShaderDispatcher.INSTANCE.drawMeshTasks(0, regionCount);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-        downStream.download(regionVisibilityBuffer, 0, regionCount, buffer -> {
-            buffer = buffer.duplicate();
-            for (short value : regionMapping) {
-                if (buffer.getInt() == 1) {
+        downStream.download(regionVisibilityBuffer, 0, regionCount, ptr -> {
+            for (int i = 0; i < regionMapping.length; i++) {
+                if (MemoryUtil.memGetInt(ptr + i * 4L) == 1) {
                     // System.out.println(regionMapping[i] + " was visible");
-                    frustum[value]++;
-                    visible[value] = fram;
+                    frustum[regionMapping[i]]++;
+                    visible[regionMapping[i]] = fram;
                 } else {
                     // System.out.println(regionMapping[i] + " was not visible");
-                    frustum[value]++;
+                    frustum[regionMapping[i]]++;
                 }
             }
         });

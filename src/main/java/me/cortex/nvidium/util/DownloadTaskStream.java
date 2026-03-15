@@ -6,14 +6,12 @@ import me.cortex.nvidium.gl.RenderDevice;
 import me.cortex.nvidium.gl.buffers.Buffer;
 import me.cortex.nvidium.gl.buffers.PersistentClientMappedBuffer;
 
-import java.nio.ByteBuffer;
-
 // Download stream from gpu to cpu
 public class DownloadTaskStream {
 
     public interface IDownloadFinishedCallback {
 
-        void accept(ByteBuffer buffer);
+        void accept(long addr);
     }
 
     private record Download(long addr, IDownloadFinishedCallback callback) {}
@@ -45,7 +43,7 @@ public class DownloadTaskStream {
     void tick() {
         cidx = (cidx + 1) % allocations.length;
         for (var download : allocations[cidx]) {
-            download.callback.accept( buffer.clientBuffer().position((int)download.addr));
+            download.callback.accept(download.addr + buffer.clientAddress());
             allocator.free(download.addr);
         }
         allocations[cidx].clear();
