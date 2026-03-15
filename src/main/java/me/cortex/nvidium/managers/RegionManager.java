@@ -1,11 +1,13 @@
 package me.cortex.nvidium.managers;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
 import org.embeddedt.embeddium.impl.render.viewport.Viewport;
 import org.lwjgl.system.MemoryUtil;
+
 
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import me.cortex.nvidium.Nvidium;
@@ -15,6 +17,8 @@ import me.cortex.nvidium.mojangCompat.ChunkSectionPos;
 import me.cortex.nvidium.util.IdProvider;
 import me.cortex.nvidium.util.UploadingBufferStream;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
+
+import static org.lwjgl.system.MemoryUtil.memByteBufferSafe;
 
 // 8x4x8
 @Lwjgl3Aware
@@ -73,20 +77,20 @@ public class RegionManager {
                     // There is no region that has replaced the old one at the id so we need to clear the region
                     // metadata
                     // to prevent the gpu from rendering arbitary data
-                    long regionUpload = this.uploadStream
-                        .upload(this.regionBuffer, (long) region.id * META_SIZE, META_SIZE);
-                    MemoryUtil.memSet(regionUpload, -1, META_SIZE);
+                    ByteBuffer regionUpload = this.uploadStream
+                        .uploadbb(this.regionBuffer, (long) region.id * META_SIZE, META_SIZE);
+                    MemoryUtil.memSet(regionUpload, -1);
 
-                    long sectionUpload = this.uploadStream.upload(
+                    ByteBuffer sectionUpload = this.uploadStream.uploadbb(
                         this.sectionBuffer,
                         (long) region.id * TOTAL_SECTION_META_SIZE,
                         TOTAL_SECTION_META_SIZE);
-                    MemoryUtil.memSet(sectionUpload, 0, TOTAL_SECTION_META_SIZE);
+                    MemoryUtil.memSet(sectionUpload, 0);
                 }
             } else {
                 // It is just a normal region update
-                long regionUpload = this.uploadStream
-                    .upload(this.regionBuffer, (long) region.id * META_SIZE, META_SIZE);
+                ByteBuffer regionUpload = this.uploadStream
+                    .uploadbb(this.regionBuffer, (long) region.id * META_SIZE, META_SIZE);
                 this.setRegionMetadata(regionUpload, region);
 
                 long sectionUpload = this.uploadStream
@@ -98,7 +102,7 @@ public class RegionManager {
         }
     }
 
-    private void setRegionMetadata(long upload, Region region) {
+    private void setRegionMetadata(ByteBuffer uploadBuffer, Region region) {
         int minX = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE;
         int minY = Integer.MAX_VALUE;
@@ -127,8 +131,8 @@ public class RegionManager {
                                                                            // large if bits are needed for other data
         long z = ((((long) region.rz << 3) + minZ) & ((1 << 24) - 1)) << (64 - 24);
         long transformationId = (((long) region.transformationId) << (64 - 24 - MAX_TRANSFORMATION_SIZE_BITS));
-        MemoryUtil.memPutLong(upload, size | count | x | y);
-        MemoryUtil.memPutLong(upload + 8, z | transformationId);
+        uploadBuffer.putLong(size | count | x | y);
+        uploadBuffer.putLong(z | transformationId);
     }
 
     public int getSectionRefId(int section) {
