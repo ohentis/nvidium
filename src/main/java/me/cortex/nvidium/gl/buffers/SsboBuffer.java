@@ -4,10 +4,10 @@ import static org.lwjgl.opengl.ARBDirectStateAccess.glNamedBufferStorage;
 import static org.lwjgl.opengl.GL15C.glDeleteBuffers;
 
 import org.lwjgl.opengl.ARBDirectStateAccess;
+import org.lwjgl.opengl.GL30C;
 
 import me.cortex.nvidium.gl.GlObject;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
-import org.lwjgl.opengl.GL30C;
 
 @Lwjgl3Aware
 public class SsboBuffer extends GlObject implements Buffer {

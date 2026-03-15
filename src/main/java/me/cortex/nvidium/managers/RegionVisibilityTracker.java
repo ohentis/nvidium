@@ -22,7 +22,9 @@ import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 public class RegionVisibilityTracker {
 
     private final Shader shader = Shader.make()
-        .addSource(getCapabilities().GL_EXT_mesh_shader ? MESH_EXT : MESH_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/queries/region/mesh.glsl")))
+        .addSource(
+            getCapabilities().GL_EXT_mesh_shader ? MESH_EXT : MESH_NV,
+            ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/queries/region/mesh.glsl")))
         .addSource(
             FRAGMENT,
             ShaderLoader.parse(new ResourceLocation("nvidium", "occlusion/queries/region/fragment.frag")))

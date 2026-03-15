@@ -27,8 +27,12 @@ public class TemporalTerrainRasterizer extends Phase {
     private final int blockSampler = glGenSamplers();
     private final int lightSampler = glGenSamplers();
     private final Shader shader = Shader.make()
-        .addSource(getCapabilities().GL_EXT_mesh_shader ? TASK_EXT : TASK_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/temporal_task.glsl")))
-        .addSource(getCapabilities().GL_EXT_mesh_shader ? MESH_EXT : MESH_NV, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/mesh.glsl")))
+        .addSource(
+            getCapabilities().GL_EXT_mesh_shader ? TASK_EXT : TASK_NV,
+            ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/temporal_task.glsl")))
+        .addSource(
+            getCapabilities().GL_EXT_mesh_shader ? MESH_EXT : MESH_NV,
+            ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/mesh.glsl")))
         .addSource(FRAGMENT, ShaderLoader.parse(new ResourceLocation("nvidium", "terrain/frag.frag")))
         .compile();
 

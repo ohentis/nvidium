@@ -19,6 +19,7 @@ import org.embeddedt.embeddium.impl.render.terrain.SimpleWorldRenderer;
 import org.embeddedt.embeddium.impl.render.viewport.Viewport;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4fc;
+import org.lwjgl.opengl.GL;
 
 import me.cortex.nvidium.gl.RenderDevice;
 import me.cortex.nvidium.managers.AsyncOcclusionTracker;
@@ -27,7 +28,6 @@ import me.cortex.nvidium.sodiumCompat.NvidiumCompactChunkVertex;
 import me.cortex.nvidium.util.DownloadTaskStream;
 import me.cortex.nvidium.util.UploadingBufferStream;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
-import org.lwjgl.opengl.GL;
 
 @Lwjgl3Aware
 public class NvidiumWorldRenderer {

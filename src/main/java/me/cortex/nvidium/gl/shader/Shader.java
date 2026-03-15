@@ -6,9 +6,9 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.cortex.nvidium.Nvidium;
 import org.lwjgl.opengl.GL20C;
 
+import me.cortex.nvidium.Nvidium;
 import me.cortex.nvidium.gl.GlObject;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
 

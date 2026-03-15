@@ -1,10 +1,9 @@
 package me.cortex.nvidium;
 
-import net.minecraft.util.Util;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
@@ -17,7 +16,6 @@ import me.cortex.nvidium.sodiumCompat.BeddiumCompat;
 import me.cortex.nvidium.sodiumCompat.ISodiumCalls;
 import me.cortex.nvidium.sodiumCompat.IrisCheck;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
-import org.lwjgl.opengl.GL11;
 
 @Lwjgl3Aware
 @Mod(
@@ -49,12 +47,13 @@ public class Nvidium {
         } else {
             LOGGER.warn("Not all requirements met, disabling nvidium");
         }
-        if(cap.GL_EXT_mesh_shader) {
+        if (cap.GL_EXT_mesh_shader) {
             LOGGER.info("We are using GL_EXT_mesh_shader");
         }
         SUPPORTS_PERSISTENT_SPARSE_ADDRESSABLE_BUFFER = cap.GL_ARB_sparse_buffer;
         String version = GL11.glGetString(GL11.GL_VERSION);
-        boolean isMesa = version != null && (version.toLowerCase().contains("mesa"));
+        boolean isMesa = version != null && (version.toLowerCase()
+            .contains("mesa"));
         if (IS_COMPATIBLE && isMesa) {
             LOGGER.warn(
                 "Mesa currently uses fallback terrain buffer due to driver inconsistencies, expect increase vram usage");

@@ -50,7 +50,8 @@ public class ShaderLoader {
         if (Nvidium.config.cull_degenerate_triangles) {
             builder.add("CULL_DEGENERATE_TRIANGLES");
         }
-        if (Nvidium.config.use_nv_fragment_shader_barycentric && GL.getCapabilities().GL_NV_fragment_shader_barycentric) {
+        if (Nvidium.config.use_nv_fragment_shader_barycentric
+            && GL.getCapabilities().GL_NV_fragment_shader_barycentric) {
             builder.add("USE_NV_FRAGMENT_SHADER_BARYCENTRIC");
         }
         if (GL.getCapabilities().GL_EXT_mesh_shader) {

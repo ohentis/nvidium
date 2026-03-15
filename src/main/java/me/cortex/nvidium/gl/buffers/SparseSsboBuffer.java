@@ -9,11 +9,11 @@ import static org.lwjgl.opengl.GL45.glNamedBufferStorage;
 import org.lwjgl.opengl.ARBSparseBuffer;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL30C;
 
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import me.cortex.nvidium.gl.GlObject;
 import me.eigenraven.lwjgl3ify.api.Lwjgl3Aware;
-import org.lwjgl.opengl.GL30C;
 
 @Lwjgl3Aware
 public class SparseSsboBuffer extends GlObject implements Buffer {
