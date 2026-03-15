@@ -517,7 +517,7 @@ public class RenderPipeline {
     // Translucency is rendered in a very cursed and incorrect way
     // it hijacks the unassigned indirect command dispatch and uses that to dispatch the translucent chunks as well
     public void renderTranslucent() {
-
+        if(prevRegionCount == 0) return;
         // Need to rebind the uniform since it might have been wiped
         bindBuffers();
         // Translucency sorting
